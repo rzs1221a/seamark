@@ -6,11 +6,15 @@ export interface WatchPlan {
   price: string;
   per: string;
   tagline: string;
+  /** Who this plan is for, one line. */
+  audience?: string;
   /** Who this plan fits and why — mechanism language, never an outcome claim. */
   pitch: string;
   /** What the month actually looks like — the long story, spec-sheet depth. */
   detail: string;
   badge?: { text: string; tone: "lead" };
+  /** False means it works with no website at all — two of three plans do. */
+  buildRequired: boolean;
   popular?: boolean;
   blurb?: string;
   includes: Array<{ text: string; emphasis?: boolean }>;
@@ -35,58 +39,69 @@ export const watchPlans: WatchPlan[] = [
     price: "$99",
     per: "/mo",
     tagline: "The review engine",
+    audience: "The agent who owns nothing yet.",
     pitch:
       "The entry point: the one lever Google still lets you move, and it needs nothing built first.",
     detail:
       "What the month looks like: when a closing happens, the review request goes out on a sequence rather than a sticky note — and keeps going, because a steady trickle beats a burst. When a review arrives, it gets an answer within a day, written in your voice, not a template's. Once a month your profile is audited — hours, photos, Q&A, services — because a profile that drifts out of date is a profile Google trusts less. It ends in a one-page report you can read at a stoplight.",
-    badge: { text: "No build required", tone: "lead" },
+    buildRequired: false,
+    badge: { text: "No website required", tone: "lead" },
     blurb:
       "Reviews requested, answered, and kept arriving. Among the signals Google weighs most in local results, reviews are the only one you can still move this month — and recency counts, so a steady trickle beats a burst every time.",
     includes: [
       { text: "Post-closing review request sequence, automated" },
-      { text: "Every review answered within a day, in your voice" },
+      { text: "Every review answered within a day, in your voice — up to five a month" },
       { text: "Profile hours, photos and Q&A kept current" },
       { text: "One-page monthly report" },
     ],
   },
   {
-    id: "watch",
-    name: "Watch",
+    id: "harbor-watch",
+    name: "Harbor Watch",
     price: "$249",
     per: "/mo",
-    tagline: "Profile, capture, and reporting",
+    tagline: "Your whole Google presence",
+    audience: "Any agent, with or without a site from me.",
     pitch:
-      "The default: profile managed, capture path tested with a real lead every month, calls attributed.",
+      "Your entire local presence managed, whether or not the website underneath it is mine.",
     detail:
-      "Everything in Keeper, plus the profile worked as a channel: posts, offers, and new listings published as they happen, content updated as your inventory changes, Search Console watched so an indexing problem is caught the week it appears instead of the quarter it costs you. And the part nobody else does: once a month a test lead is pushed through your live form all the way into BoldTrail, and the result is shown to you — because a capture path that isn't tested fails silently, and the most expensive lead is the one that arrived and never landed anywhere. The monthly report reads like an instrument panel: calls, direction requests, form fills, and where each one came from.",
+      "A harbor watch is the duty stood at anchor — nobody is sailing anywhere, but someone is still awake, checking the cable and the weather. Your entire local presence managed, whether or not the website underneath it is mine.",
+    buildRequired: false,
     popular: true,
+    badge: { text: "No website required", tone: "lead" },
     includes: [
       { text: "Everything in Keeper" },
-      { text: "Full profile management — posts, offers, new listings" },
+      { text: "Unlimited review responses" },
+      { text: "Full profile management — posts, offers, new listing updates" },
+      { text: "Competitor position tracking in the local pack for your farm areas" },
+      {
+        text: "Quarterly profile audit against Google's current guidelines, with suspension-risk review",
+      },
+      { text: "Real monthly report — calls, direction requests, profile views, and their sources" },
+    ],
+  },
+  {
+    id: "full-watch",
+    name: "Full Watch",
+    price: "$499",
+    per: "/mo",
+    tagline: "Your presence and your site",
+    audience: "Anyone running a Seamark build.",
+    pitch:
+      "Everything in Harbor Watch, plus the site itself kept current as you list.",
+    detail:
+      "The site stays alive: listings become real pages while the sign is still wet, a market update ships every month, and once a quarter we sit down on the site itself — what's working, what's stale, what the next season needs.",
+    buildRequired: true,
+    includes: [
+      { text: "Everything in Harbor Watch" },
       {
         text: "A test lead pushed through your form into BoldTrail every month, and shown to you",
         emphasis: true,
       },
-      { text: "Search Console monitoring" },
-      { text: "Content updates as listings change" },
-      { text: "Real monthly report — calls, direction requests, form fills, and their sources" },
-    ],
-  },
-  {
-    id: "watch-full",
-    name: "Watch, Full",
-    price: "$499",
-    per: "/mo",
-    tagline: "The site kept current",
-    pitch:
-      "For the agent who lists: every listing becomes a page while the sign is still wet.",
-    detail:
-      "Everything in Watch, plus the site itself kept alive: when you take a listing, it becomes a real page on your own domain — not just an MLS entry — while the sign is still wet. Once a month a market update page ships, so the site always has something recent to say about your ground. Once a quarter we sit down on the site itself: what's working, what's stale, what the next season needs. And when something has to move fast — a price change, a sold banner, a new headshot — it jumps the queue.",
-    includes: [
-      { text: "Everything in Watch" },
+      { text: "Search Console monitoring: indexation and ranking movement" },
       { text: "New listing pages built as you list" },
       { text: "One market update page per month" },
-      { text: "Quarterly site work" },
+      { text: "Quarterly site work — new sections, new area pages, design updates" },
       { text: "Priority turnaround" },
     ],
   },

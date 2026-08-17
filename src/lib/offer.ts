@@ -1,4 +1,5 @@
-// The four build tiers. Copy is final and fact-checked — verbatim.
+// The five build tiers. Copy is final and fact-checked — verbatim.
+// Every figure is gated by SHOW_PRICING; nothing here renders raw.
 
 export type StationId = "found" | "landed" | "captured" | "bought";
 
@@ -12,6 +13,18 @@ export interface Tier {
   audience: string; // who it's for + timeline, rendered as the card's italic line
   /** Who this is for and why now — fit language, never an outcome claim. */
   pitch: string;
+  /** The twelve-payment option, ~11% premium. Rendered beneath the one-time. */
+  monthlyPrice?: number;
+  /** Needs no website at all — the objection this tier exists to remove. */
+  noBuildRequired?: boolean;
+  badge?: string;
+  /** The long "what this is" paragraph, /packages only. */
+  summary?: string;
+  idealFor?: string[];
+  turnaroundTime?: string;
+  ctaLabel?: string;
+  /** A shipped project that shows the shape of this tier. */
+  exampleSlug?: string;
   popular?: boolean;
   stations: StationId[]; // stations lit solid on the mini-passage diagram
   deliverables: string[];
@@ -19,9 +32,43 @@ export interface Tier {
 
 export const tiers: Tier[] = [
   {
+    id: "buoy",
+    name: "Buoy",
+    price: "$1,200",
+    monthlyPrice: 115,
+    priceNote: "one-time",
+    system: "The Google presence",
+    noBuildRequired: true,
+    badge: "No website required",
+    audience:
+      "The agent who will never buy a website — and there are more of them than you think.",
+    pitch: "Your Google presence built properly and nothing more.",
+    summary:
+      "A buoy floats and marks a position. It says something is here, and nothing else. This is your Google presence built properly and nothing more: no site, no development, just the thing that decides whether you appear at all.",
+    idealFor: [
+      "You already have a brokerage page and have no intention of replacing it",
+      "You have never opened your Google Business Profile, or do not have one",
+      "You want the highest-leverage thing fixed first, and only that",
+    ],
+    // FOUND alone: the diagram shows "no website" rather than saying it.
+    stations: ["found"],
+    deliverables: [
+      "Google Business Profile claimed, verified, and categorised correctly",
+      "Named the way Google's rules actually require — not the way that gets you suspended",
+      "Services, photo set, hours logic and Q&A seeded",
+      "Review request system installed and running",
+      "Your existing brokerage page linked correctly so it stops competing with you",
+      "30-minute handoff call, recorded",
+    ],
+    turnaroundTime: "Three to five days",
+    ctaLabel: "Start here",
+    exampleSlug: "ron-heymann-agent-page",
+  },
+  {
     id: "daymark",
     name: "Daymark",
     price: "$2,400",
+    monthlyPrice: 225,
     priceNote: "one-time",
     system: "The single-agent system",
     audience: "For the agent who has nothing of their own yet. About one week.",
@@ -42,6 +89,7 @@ export const tiers: Tier[] = [
     id: "beacon",
     name: "Beacon",
     price: "$5,400",
+    monthlyPrice: 500,
     priceNote: "one-time",
     system: "The working agent's system",
     audience: "An agent or team that has outgrown one page and one channel. Two to three weeks.",
@@ -63,6 +111,7 @@ export const tiers: Tier[] = [
     id: "light-station",
     name: "Light Station",
     price: "$9,800",
+    monthlyPrice: 900,
     pricePrefix: "from",
     priceNote: "one-time",
     system: "The full acquisition system",
@@ -83,6 +132,7 @@ export const tiers: Tier[] = [
     id: "flagship",
     name: "Flagship",
     price: "$18,000",
+    monthlyPrice: 1650,
     pricePrefix: "from",
     priceNote: "one-time",
     system: "The custom market platform",
@@ -102,7 +152,23 @@ export const tiers: Tier[] = [
 ];
 
 export const packagesLede =
-  "One fee, agreed in writing before anything starts. After launch you own it: the code, the domain, the profile, the ad account, the data.";
+  "One fee, or twelve monthly payments. You own it outright either way, from launch — the code, the domain, the profile, the ad account, the data.";
+
+export const payOptions = {
+  title: "Two ways to pay, one outcome",
+  body: "Every build can be paid once or across twelve months. Ownership transfers at launch either way — the site, the domain, the profile and every account are in your name from day one. The monthly option costs about 11% more, which is the honest price of time, not a penalty.",
+};
+
+export const priceIncrease = {
+  body: "These are the prices through December 31. On January 1 they rise:",
+  rows: [
+    { name: "Buoy", price: "$1,600" },
+    { name: "Daymark", price: "$3,200" },
+    { name: "Beacon", price: "$6,900" },
+    { name: "Light Station", price: "$12,500" },
+    { name: "Flagship", price: "$24,000" },
+  ],
+};
 
 export interface ComparisonRow {
   question: string;

@@ -2,7 +2,7 @@ import { SHOW_PRICING } from "../lib/brand";
 
 // Every price on the site renders through this component, so flipping
 // SHOW_PRICING to false replaces every figure with "Let's talk".
-export function Price({
+function PriceFigure({
   value,
   prefix,
   note,
@@ -31,6 +31,34 @@ export function Price({
       </span>
       {per && <span className="mono text-sm text-(--muted)">{per}</span>}
       {note && <span className="mono text-xs text-(--muted)">{note}</span>}
+    </span>
+  );
+}
+
+/**
+ * A price, gated by SHOW_PRICING. With `monthly`, the twelve-payment option
+ * prints beneath the one-time figure in muted mono.
+ */
+export function Price(props: {
+  value: string;
+  prefix?: string;
+  note?: string;
+  per?: string;
+  tone?: "signal" | "lead";
+  tag?: boolean;
+  monthly?: number;
+}) {
+  const { monthly, ...figure } = props;
+  if (!SHOW_PRICING) {
+    return <span className="mono text-xl text-(--signal)">Let&rsquo;s talk</span>;
+  }
+  if (!monthly) return <PriceFigure {...figure} />;
+  return (
+    <span className="inline-flex flex-col items-end gap-1">
+      <PriceFigure {...figure} />
+      <span className="mono text-[0.6875rem] whitespace-nowrap text-(--muted)">
+        or ${monthly}/mo × 12
+      </span>
     </span>
   );
 }

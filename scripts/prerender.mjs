@@ -94,7 +94,15 @@ const jsonLd = JSON.stringify({
 });
 
 // Our prices, which must be absent from every page when SHOW_PRICING is false.
-const PRICE_STRINGS = ["$2,400", "$5,400", "$9,800", "$18,000", "$99", "$249", "$499", "$600"];
+const PRICE_STRINGS = [
+  // one-time builds, current and the published January prices
+  "$1,200", "$2,400", "$5,400", "$9,800", "$18,000",
+  "$1,600", "$3,200", "$6,900", "$12,500", "$24,000",
+  // the twelve-payment options
+  "$115/mo", "$225/mo", "$500/mo", "$900/mo", "$1650/mo",
+  // monthlies and channel management
+  "$99", "$249", "$499", "$600",
+];
 
 // Honesty-contract scan (§8.2): these strings fail the build wherever they
 // appear in rendered output; "guarantee" is allowed only inside the FAQ route.

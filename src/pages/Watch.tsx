@@ -1,15 +1,19 @@
 import { useRef } from "react";
+import { Link } from "react-router-dom";
 import { RadarScope } from "../components/RadarScope";
 import { Price } from "../components/Price";
-import { PlanRow } from "../components/PlanRow";
 import { SHOW_PRICING } from "../lib/brand";
 import { watchHeader, watchLede, watchPlans, noContractLine, channel } from "../lib/watch";
 import { useReveals } from "../lib/useReveal";
 
 function SailVsPower() {
   return (
-    <svg viewBox="0 0 320 80" className="w-full max-w-80" role="img" aria-label="Two vessels: one under sail with no meter running, one under power with a wake and a running meter">
-      {/* under sail */}
+    <svg
+      viewBox="0 0 320 80"
+      className="w-full max-w-80"
+      role="img"
+      aria-label="Two vessels: one under sail with no meter running, one under power with a wake and a running meter"
+    >
       <g>
         <path d="M 40 52 L 80 52 L 72 60 L 48 60 Z" fill="none" stroke="var(--signal)" strokeWidth="1.25" />
         <line x1="60" y1="52" x2="60" y2="20" stroke="var(--signal)" strokeWidth="1.25" />
@@ -18,7 +22,6 @@ function SailVsPower() {
           UNDER SAIL · NO METER
         </text>
       </g>
-      {/* under power */}
       <g>
         <path d="M 210 52 L 250 52 L 242 60 L 218 60 Z" fill="none" stroke="var(--lead)" strokeWidth="1.25" />
         <rect x="222" y="42" width="14" height="10" fill="none" stroke="var(--lead)" strokeWidth="1" />
@@ -38,7 +41,7 @@ export function Watch() {
     <div ref={rootRef} className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
       <div className="grid items-center gap-10 lg:grid-cols-2">
         <div>
-          <div className="mono-label">The Watch · monthly</div>
+          <div className="mono-label">The Watch · monthly · no contract</div>
           <h1 className="mt-3 text-3xl sm:text-4xl">{watchHeader}</h1>
           <p className="mt-4 max-w-xl text-base leading-relaxed text-(--muted)">{watchLede}</p>
         </div>
@@ -46,22 +49,69 @@ export function Watch() {
         <RadarScope />
       </div>
 
-      {/* the shelf, then each plan at full depth */}
-      <div className="mt-10 grid gap-3 sm:grid-cols-3" data-reveal>
-        {watchPlans.map((plan) => (
-          <a key={plan.id} href={`#plan-${plan.id}`} className="shelf-tile">
-            <span className="flex items-baseline justify-between gap-2">
-              <span className="font-semibold tracking-tight">{plan.name}</span>
-              <Price value={plan.price} per={plan.per} />
-            </span>
-            <span className="mono-label mt-1.5 block">{plan.tagline}</span>
-          </a>
-        ))}
-      </div>
-
-      <div className="mt-6">
+      {/* Same card treatment as the build tiers. */}
+      <div className="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
         {watchPlans.map((plan, i) => (
-          <PlanRow key={plan.id} plan={plan} index={i} />
+          <article
+            key={plan.id}
+            id={`plan-${plan.id}`}
+            data-reveal
+            data-flick
+            data-scrub={(["a", "b", "c"] as const)[i % 3]}
+            className={`panel relative flex scroll-mt-24 flex-col p-6 ${
+              plan.popular ? "border-(--signal)/50" : ""
+            }`}
+          >
+            {plan.popular && (
+              <span className="chip chip-accent absolute -top-3 left-6 bg-(--bg)">
+                Most popular
+              </span>
+            )}
+            {!plan.buildRequired && (
+              <span className="chip chip-lead absolute -top-3 right-6 bg-(--bg)">
+                No website required
+              </span>
+            )}
+
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <h2 className="text-xl font-semibold tracking-tight">{plan.name}</h2>
+              <Price value={plan.price} per={plan.per} tag />
+            </div>
+            <div className="mono-label mt-1">{plan.tagline}</div>
+            {plan.audience && (
+              <p className="mt-3 text-sm text-(--muted) italic">{plan.audience}</p>
+            )}
+            <p className="mt-3 text-sm leading-relaxed">{plan.detail}</p>
+
+            <div className="mono-label mt-6">What you get</div>
+            <ul className="mt-2 space-y-2.5 text-sm leading-relaxed">
+              {plan.includes.map((item) => (
+                <li key={item.text} className="flex gap-2.5">
+                  <span
+                    aria-hidden="true"
+                    className="mt-2 h-1 w-1 shrink-0 rounded-full bg-(--signal)"
+                  />
+                  <span
+                    className={
+                      item.emphasis
+                        ? "font-semibold text-(--ink)"
+                        : item.text.startsWith("Everything in")
+                          ? "text-(--signal)"
+                          : "text-(--ink)"
+                    }
+                  >
+                    {item.text}
+                  </span>
+                </li>
+              ))}
+            </ul>
+
+            <div className="mt-auto pt-6">
+              <Link to={`/contact?rec=${plan.id}`} className="btn-quiet" data-magnetic>
+                Put {plan.name} on watch →
+              </Link>
+            </div>
+          </article>
         ))}
       </div>
 

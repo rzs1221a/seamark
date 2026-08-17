@@ -74,10 +74,12 @@ export function recommend(a: QuizAnswers): Recommendation {
   if (a.work === "market" || a.focus === "scale") tierId = "flagship";
   else if (a.work === "producer" || a.have === "ads") tierId = "light-station";
   else if (a.work === "team" || a.have === "site") tierId = "beacon";
+  // Keeping the brokerage page and only wanting to be found: that's the Buoy.
+  else if (a.have === "brokerage" && a.focus === "found") tierId = "buoy";
 
-  let planId = "watch";
+  let planId = "harbor-watch";
   if (a.listing === "rarely") planId = "keeper";
-  else if (a.listing === "weekly") planId = "watch-full";
+  else if (a.listing === "weekly") planId = "full-watch";
 
   const label = (q: QuizQuestion["id"]) =>
     quizQuestions

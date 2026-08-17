@@ -22,6 +22,11 @@ export const faq: FaqEntry[] = [
       "Yes. Every form routes through BoldTrail's own Lead Dropbox parser into the account your brokerage already gives you. Nothing new to learn.",
   },
   {
+    question: "What if I'd rather not write one cheque?",
+    answer:
+      "Every build splits across twelve months for about 11% more. You still own everything from launch day; you just owe the balance.",
+  },
+  {
     question: "What happens if I change brokerages?",
     answer: "Everything comes with you. That is the point of building it in your name.",
   },

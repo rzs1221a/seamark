@@ -8,7 +8,8 @@ import { homeStatFacts } from "../lib/facts";
 import { brand, ownershipContract } from "../lib/brand";
 import { stations, routeBandHeading } from "../lib/stations";
 import { tiers } from "../lib/offer";
-import { watchPlans, noContractLine } from "../lib/watch";
+import { watchPlans, noContractLine, channel } from "../lib/watch";
+import { SHOW_PRICING } from "../lib/brand";
 import { useSectionCamera } from "../lib/useSectionCamera";
 import { useReveals } from "../lib/useReveal";
 
@@ -93,7 +94,10 @@ export function Home() {
                 />
               ))}
             </ul>
-            <Link to="/packages" className="link-draw mono mt-6 inline-block text-sm text-(--signal)" data-reveal>
+            <p className="mt-4 text-sm text-(--muted)" data-reveal>
+              Paid once, or across twelve months. You own it at launch either way.
+            </p>
+            <Link to="/packages" className="link-draw mono mt-4 inline-block text-sm text-(--signal)" data-reveal>
               What each build includes →
             </Link>
           </div>
@@ -113,12 +117,33 @@ export function Home() {
               ))}
             </ul>
             <p className="mt-4 text-sm text-(--muted)" data-reveal>
-              {noContractLine}
+              Two of the three need no website at all. {noContractLine}
             </p>
             <Link to="/watch" className="link-draw mono mt-4 inline-block text-sm text-(--signal)" data-reveal>
               What the Watch does each month →
             </Link>
           </div>
+        </div>
+
+        {/* The third line: ads, run in your own account. */}
+        <div className="mt-14 border-t border-(--hairline-faint) pt-8" data-reveal>
+          <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
+            <h2 className="text-2xl tracking-tight">Run ads. Your account.</h2>
+            {SHOW_PRICING && (
+              <p className="mono text-sm text-(--muted)">
+                <span className="text-(--signal)">{channel.management}</span>
+                {channel.managementPer} · minimum $2,000/mo spend, on your card
+              </p>
+            )}
+          </div>
+          <p className="mt-3 max-w-3xl text-sm leading-relaxed text-(--muted)">
+            Google Ads and Local Services Ads, built and managed in your own account. Quoted only
+            above the floor — below it the numbers don&rsquo;t work, and I&rsquo;ll show you why
+            rather than take the fee.
+          </p>
+          <Link to="/watch" className="link-draw mono mt-4 inline-block text-sm text-(--signal)" data-reveal>
+            The arithmetic, in full →
+          </Link>
         </div>
       </section>
 

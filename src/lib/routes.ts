@@ -18,13 +18,13 @@ export const routeTable: RouteMeta[] = [
     path: "/packages",
     title: "The Build — one fee, owned outright · Seamark Studio",
     description:
-      "One fee, agreed in writing before anything starts. After launch you own it: the code, the domain, the profile, the ad account, the data.",
+      "Buoy, Daymark, Beacon, Light Station, Flagship — five builds from $1,200, starting with your Google presence and no website at all. One fee, or twelve monthly payments. Either way you own it at launch: the code, the domain, the profile, the ad account, the data.",
   },
   {
     path: "/watch",
     title: "The Watch — someone awake while you sleep · Seamark Studio",
     description:
-      "Reviews answered, your profile kept accurate, and your lead path tested rather than assumed — the work that only exists monthly. No contract on any of it.",
+      "Reviews answered, your profile kept accurate, and your lead path tested rather than assumed — the work that only exists monthly. From $99 a month, no contract, and two of the three plans need no website at all.",
   },
   {
     path: "/work",

@@ -63,8 +63,8 @@ modules and contain no prose of their own:
 | File | Owns |
 |---|---|
 | `brand.ts` | name, tagline, contact, origin, `SHOW_PRICING`, disclaimer, ownership contract |
-| `offer.ts` | the four build tiers + comparison table |
-| `watch.ts` | the three monthly plans + the Channel + radar blips |
+| `offer.ts` | the five build tiers, payment options, the published increase, comparison table |
+| `watch.ts` | the three monthly plans (two need no website) + the Channel + radar blips |
 | `facts.ts` | every external number: `{ value, label, source, sourceUrl, asOf }` |
 | `work.ts` | the portfolio — see *Provenance* below |
 | `faq.ts`, `process.ts`, `pillars.ts` | questions, process steps, capability entries |
