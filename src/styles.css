@@ -375,6 +375,81 @@ h3 {
   }
 }
 
+/* ————— beacon lights —————
+   Real aids-to-navigation characteristics, drawn as luminance keyframes
+   between 0.65 and 1.0 — never a strobe. Ramps are 2–3% of the period so the
+   light reads as incandescence, not switching. Every pattern starts AND ends
+   lit: a light caught mid-eclipse would read as a dead beacon when frozen. */
+.beacon-dot {
+  display: inline-block;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--signal);
+  box-shadow: 0 0 8px rgba(34, 211, 238, 0.7);
+  opacity: 1;
+}
+
+/* Fl 6s — one flash, then darkness holds the rest of the period. */
+@keyframes sig-fl-6s {
+  0%, 6% { opacity: 1; }
+  9%, 96% { opacity: 0.65; }
+  100% { opacity: 1; }
+}
+.sig-fl-6s { animation: sig-fl-6s 6s linear infinite; }
+
+/* Fl(2) 10s — two brief flashes, then dark. */
+@keyframes sig-fl2-10s {
+  0%, 5% { opacity: 1; }
+  8%, 13% { opacity: 0.65; }
+  16%, 21% { opacity: 1; }
+  24%, 96% { opacity: 0.65; }
+  100% { opacity: 1; }
+}
+.sig-fl2-10s { animation: sig-fl2-10s 10s linear infinite; }
+
+/* Fl(3) 15s — three flashes on a long period. */
+@keyframes sig-fl3-15s {
+  0%, 4% { opacity: 1; }
+  6%, 10% { opacity: 0.65; }
+  12%, 16% { opacity: 1; }
+  18%, 22% { opacity: 0.65; }
+  24%, 28% { opacity: 1; }
+  31%, 96% { opacity: 0.65; }
+  100% { opacity: 1; }
+}
+.sig-fl3-15s { animation: sig-fl3-15s 15s linear infinite; }
+
+/* Iso 4s — isophase: equal light and dark. */
+@keyframes sig-iso-4s {
+  0%, 47% { opacity: 1; }
+  53%, 95% { opacity: 0.65; }
+  100% { opacity: 1; }
+}
+.sig-iso-4s { animation: sig-iso-4s 4s linear infinite; }
+
+/* Oc 8s — occulting: lit, with one brief eclipse. */
+@keyframes sig-oc-8s {
+  0%, 78% { opacity: 1; }
+  82%, 93% { opacity: 0.65; }
+  97%, 100% { opacity: 1; }
+}
+.sig-oc-8s { animation: sig-oc-8s 8s linear infinite; }
+
+/* LFl 8s — one long flash. */
+@keyframes sig-lfl-8s {
+  0%, 30% { opacity: 1; }
+  34%, 96% { opacity: 0.65; }
+  100% { opacity: 1; }
+}
+.sig-lfl-8s { animation: sig-lfl-8s 8s linear infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .beacon-dot[class*="sig-"] {
+    animation: none;
+    opacity: 1;
+  }
+}
+
 /* ————— footer compass ————— */
 .compass-watermark {
   position: absolute;
