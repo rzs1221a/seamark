@@ -158,19 +158,6 @@ function SiteCardShell({
   );
 }
 
-function ChartKey() {
-  return (
-    <div className="scene-card flex items-center gap-4 px-3 py-2">
-      <span className="mono flex items-center gap-1.5 text-[0.625rem] text-(--muted)">
-        <span className="h-2 w-2 bg-(--signal)" aria-hidden="true" /> What you own
-      </span>
-      <span className="mono flex items-center gap-1.5 text-[0.625rem] text-(--muted)">
-        <span className="h-2 w-2 bg-(--lead)" aria-hidden="true" /> The lead, underway
-      </span>
-    </div>
-  );
-}
-
 /* ── the geo scene: imperative, filter-free, sixty smooth frames ────────── */
 
 function GeoScene({ active }: { active: boolean }) {
@@ -561,7 +548,6 @@ function GeoScene({ active }: { active: boolean }) {
           </div>
 
           <div className="pointer-events-auto absolute right-[2%] bottom-[4%] flex items-center gap-2">
-            <ChartKey />
             <button
               type="button"
               onClick={replay}
@@ -863,7 +849,6 @@ function DrawnScene({ active }: { active: boolean }) {
           </div>
 
           <div className="pointer-events-auto absolute right-[2%] bottom-[4%] flex items-center gap-2">
-            <ChartKey />
             <button
               type="button"
               onClick={() => {
@@ -947,7 +932,6 @@ function MobileScene() {
           </div>
         </div>
         <div className="mt-4">
-          <ChartKey />
         </div>
       </div>
     </div>
@@ -1000,16 +984,15 @@ export function PassageHero() {
             <span className="text-(--signal)">Own the whole route.</span>
           </h1>
           <p className="mt-4 max-w-lg text-base leading-relaxed text-(--ink) sm:text-lg">
-            This is the passage every client travels — from a search box to your CRM. I build
-            all of it, in your name, and it comes with you if you ever leave.
+            A search box to your CRM. I build every step of it, in your name.
           </p>
-          <div className="mt-6 flex flex-wrap items-center gap-3">
+          <div className="mt-6 flex flex-wrap items-center gap-5">
             <Link to="/contact" className="btn-cta" data-cta="hero" data-magnetic>
               Twenty minutes, and you&rsquo;ll know
             </Link>
-            <a href="#the-build" className="btn-quiet">
-              The Build &amp; the Watch →
-            </a>
+            <Link to="/packages" className="link-draw mono text-sm text-(--muted)">
+              What it costs
+            </Link>
           </div>
         </div>
       </div>

@@ -49,17 +49,8 @@ export const FRAMES: Record<string, CameraFrame> = {
   // The route explained: close on the Light itself, low over the water.
   "home-route": { center: [-81.4421, 30.6733], zoom: 13.9, pitch: 58, bearing: 52 },
   "home-proof": { center: [-81.458, 30.628], zoom: 11.1, pitch: 40, bearing: -14 },
-  // The Build: mid-island, the ground the tiers are built on.
-  "home-build": { center: [-81.455, 30.61], zoom: 11.8, pitch: 52, bearing: -24 },
-  // The Watch: Fort Clinch — the station that keeps watch (matches /watch).
-  "home-watch": { center: [-81.454, 30.702], zoom: 13.2, pitch: 58, bearing: -30 },
-  // Process: downtown Fernandina, where the work happens.
-  "home-process": { center: [-81.4637, 30.6697], zoom: 13.6, pitch: 55, bearing: -28 },
-  // Questions: the marsh — quiet water for straight answers.
-  "home-questions": { center: [-81.49, 30.63], zoom: 12.0, pitch: 46, bearing: 30 },
-  // The cost band pulls out to the whole working corridor — the frame in which
-  // value flowing away reads as a market, not a street.
-  "home-costs": { center: [-81.5, 30.45], zoom: 9.6, pitch: 45, bearing: -10 },
+  // The offer: Fort Clinch — the station that keeps watch.
+  "home-offer": { center: [-81.454, 30.702], zoom: 13.2, pitch: 58, bearing: -30 },
   // The contract settles over the island's southern tip — the studio's own mark.
   "home-contract": { center: [-81.438, 30.535], zoom: 13.0, pitch: 55, bearing: 18 },
 };

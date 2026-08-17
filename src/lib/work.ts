@@ -227,7 +227,7 @@ export const workItems: WorkItem[] = [
 /** All entries are filled and provenance-marked; nothing is excluded. */
 export const liveWork: WorkItem[] = workItems;
 
-export const proofStripLine = "Real sites, on this coast. Click any of them.";
+export const proofStripLine = "Real sites, on this coast.";
 
 export const provenanceLine: Record<Provenance, string> = {
   session: "verified against the source repository",

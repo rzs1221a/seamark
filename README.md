@@ -9,16 +9,24 @@ MapLibre camera sits behind every page, and the hero's Passage is drawn in
 lng/lat along the actual approach through the St. Marys entrance to the
 Fernandina marina, projected through the live camera every frame.
 
-Three rules govern everything here:
+Four rules govern everything here:
+
+**The palette is semantic and small:** white = what you own · cabernet
+(`#b96a99`, BHHS, lifted for contrast) = the lead in motion · gold
+(`#d4af37`, BHHS) = emphasis, **at most one gold element per viewport** — the
+moment there are two, neither is emphasis · hollow = unbuilt · red = never.
 
 1. **The chart, not the brochure.** The visual language is a living nautical
    chart over real imagery; every animated element is information — the beam
    is how being found works, the beacons blink their true light
    characteristics, the radar blips are the service log.
-2. **The honesty contract.** Every external number comes from
+2. **Say it once, short.** The homepage is an overview — what the route is,
+   what it costs, that it's real, and the door. Depth lives on /packages,
+   /watch, /work, and /capabilities; nothing is restated across pages.
+3. **The honesty contract.** Every external number comes from
    `src/lib/facts.ts` with source and as-of date; every portfolio claim states
    its provenance; the build fails — not warns — on violations.
-3. **Navigation is travel.** Route changes fly the camera and bloom the
+4. **Navigation is travel.** Route changes fly the camera and bloom the
    arriving page in one continuous move. Nothing cuts; everything settles.
 
 ## Stack

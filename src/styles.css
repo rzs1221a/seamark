@@ -4,6 +4,7 @@
   --color-signal: #f5f5f7;
   --color-lead: #b96a99;
   --color-lead-deep: #582c4d;
+  --color-accent: #d4af37;
   --color-bg: #04070a;
   --color-land: #0a1116;
   --color-panel: #0c1216;
@@ -23,6 +24,9 @@
   --signal: #f5f5f7;
   --lead: #b96a99;
   --lead-deep: #582c4d;
+  /* Emphasis, and nothing else: BHHS gold. At most ONE gold element per
+     viewport — the moment there are two, neither is emphasis. */
+  --accent: #d4af37;
   --bg: #04070a;
   --land: #0a1116;
   --panel: #0c1216;
@@ -50,6 +54,12 @@
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* The grain: one inline turbulence tile, reused by every glass surface. */
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.5 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/></svg>");
+
+  /* The sky's cast over the coast — set by useSkylight, luminance-neutral. */
+  --sky-cast: transparent;
 }
 
 /* Where custom easing curves exist, the two workhorse easings become real
@@ -67,11 +77,6 @@
     );
   }
 
-  /* The grain: one inline turbulence tile, reused by every glass surface. */
-  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.5 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/></svg>");
-
-  /* The sky's cast over the coast — set by useSkylight, luminance-neutral. */
-  --sky-cast: transparent;
 }
 
 /* The living light: the site knows what time it is on the coast. State, not
@@ -414,6 +419,12 @@ h3 {
   color: var(--signal);
   background: rgba(240, 244, 246, 0.07);
   white-space: nowrap;
+}
+
+.chip-accent {
+  border-color: rgba(212, 175, 55, 0.45);
+  color: var(--accent);
+  background: rgba(212, 175, 55, 0.08);
 }
 
 .chip-lead {
@@ -1118,21 +1129,14 @@ h3 {
   background: var(--tint-1);
 }
 
-/* The shelf: browse the products, then read the spec sheets. */
-.shelf-tile {
-  display: block;
-  border: 1px solid var(--hairline-faint);
-  border-radius: 0.625rem;
-  background: rgba(12, 18, 22, 0.72);
-  padding: 0.9rem 1rem;
-  transition:
-    border-color var(--dur-2) var(--ease-out-expo),
-    transform var(--dur-2) var(--ease-out-expo);
+/* The catalogue: one product per line, a rule between. */
+.offer-line {
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--hairline-faint);
 }
 
-.shelf-tile:hover {
-  border-color: var(--tint-5);
-  transform: translateY(-2px);
+.offer-line:last-child {
+  border-bottom: 0;
 }
 
 /* Quiz answers: chips you can press. */

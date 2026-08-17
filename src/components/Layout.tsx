@@ -182,23 +182,22 @@ export function Layout() {
         <Outlet />
       </main>
 
-      {/* The closer: whoever reads to the bottom of any page gets the door. */}
+      {/* The closer, on every page that doesn't already end with one. */}
+      {pathname !== "/" && (
       <div className="seam-top mx-auto mt-24 w-full max-w-6xl px-4 py-14 text-center sm:px-6">
-        <p className="text-lg text-(--ink)">
-          Still reading? That&rsquo;s usually the sign.
-        </p>
+        <p className="text-lg text-(--ink)">Still reading? That&rsquo;s usually the sign.</p>
         <div className="mt-5">
           <Link to="/contact" className="btn-cta" data-cta="footer" data-magnetic>
             Twenty minutes, and you&rsquo;ll know
           </Link>
         </div>
         <p className="mono mt-4 text-sm text-(--muted)">
-          Or call or text{" "}
           <a href={`tel:${brand.phone}`} className="link-draw text-(--signal)">
             {brand.phoneDisplay}
           </a>
         </p>
       </div>
+      )}
 
       <footer className="relative overflow-hidden border-t border-(--hairline-faint) bg-(--land)">
         <CompassRose className="compass-watermark text-(--signal)" />

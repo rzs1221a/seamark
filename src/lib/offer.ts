@@ -26,7 +26,7 @@ export const tiers: Tier[] = [
     system: "The single-agent system",
     audience: "For the agent who has nothing of their own yet. About one week.",
     pitch:
-      "The right first build when you own nothing yet: one week of work, and every station of the route exists — in your name, with nothing to cancel afterward because there is no subscription on it.",
+      "For the agent who owns nothing yet. One week, and the whole route exists in your name.",
     stations: ["found", "landed", "captured"],
     deliverables: [
       "Google Business Profile claimed, verified, and categorised correctly",
@@ -46,7 +46,7 @@ export const tiers: Tier[] = [
     system: "The working agent's system",
     audience: "An agent or team that has outgrown one page and one channel. Two to three weeks.",
     pitch:
-      "The working agent's default: the same route, built deeper — separate entry points from search, area pages for the ground you actually farm, a phone you can attribute, and the capture path proven in writing before launch.",
+      "The working default: more entry points from search, the ground you farm, a phone you can attribute.",
     popular: true,
     stations: ["found", "landed", "captured"],
     deliverables: [
@@ -68,7 +68,7 @@ export const tiers: Tier[] = [
     system: "The full acquisition system",
     audience: "A top producer or brokerage that needs a system, not a site. Three to six weeks.",
     pitch:
-      "For the producer ready to run search, listings, and paid channels as one system — with the housing-ad compliance and Local Services qualification handled instead of discovered the hard way.",
+      "Search, listings, and paid channels as one system — with the ad compliance handled.",
     stations: ["found", "landed", "captured", "bought"],
     deliverables: [
       "Everything in Beacon",
@@ -88,7 +88,7 @@ export const tiers: Tier[] = [
     system: "The custom market platform",
     audience: "Whoever decides to own the map of their market. Six to ten weeks.",
     pitch:
-      "For whoever decides to own the map of their market — the site you are reading is the demonstration, pointed at this coast instead of yours.",
+      "Own the map of your market. The site you're reading is the demonstration.",
     stations: ["found", "landed", "captured", "bought"],
     deliverables: [
       "Everything in Light Station",
