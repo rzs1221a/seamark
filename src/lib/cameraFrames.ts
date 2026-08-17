@@ -56,6 +56,17 @@ export const FRAMES: Record<string, CameraFrame> = {
 };
 
 /**
+ * The frames above are composed for landscape. A phone holds the same coast
+ * in a tall narrow window: the same center wants less zoom and less tilt or
+ * the geography that carries the frame falls off the sides. One adjustment
+ * at the camera seam — not a second authored frame set.
+ */
+export function portraitAdjust(frame: CameraFrame): CameraFrame {
+  if (typeof window === "undefined" || window.innerWidth >= 821) return frame;
+  return { ...frame, zoom: frame.zoom - 0.55, pitch: Math.min(frame.pitch, 48) };
+}
+
+/**
  * Where the arrival begins: out over the Atlantic, flat — the way you would
  * actually approach this coast. The opening descends from here.
  */
@@ -90,7 +101,7 @@ export function registerCamera(next: CameraController | null) {
  * instead of trailing several seconds behind them.
  */
 export function flyToFrame(frame: CameraFrame, slow = false) {
-  pendingFrame = frame;
+  pendingFrame = portraitAdjust(frame);
   if (!controller) return;
   const duration = controller.isFlying() ? 1600 : slow ? 3400 : 2800;
   controller.flyTo(frame, duration);

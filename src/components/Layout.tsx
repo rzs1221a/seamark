@@ -50,22 +50,19 @@ function ScrollToTop() {
 }
 
 /**
- * Mount the living coast on capable machines only: wide viewports, no
- * data-saver, no 2G. Phones keep the dark plate — cheap, no tile cost, and
- * the vertical Passage diagram carries the story there.
+ * Mount the living coast everywhere except constrained connections: no
+ * data-saver, no 2G. Phones are the number-one way this site is seen, so
+ * they get the real water too — with a portrait-adjusted camera and a
+ * harder pixel-ratio cap (see cameraFrames.portraitAdjust and LiveMap).
  */
 function useMapEligible() {
   const [eligible, setEligible] = useState(false);
   useEffect(() => {
-    const wide = window.matchMedia("(min-width: 821px)");
     type NetInfo = { saveData?: boolean; effectiveType?: string };
     const conn = (navigator as unknown as { connection?: NetInfo }).connection;
     const slow =
       conn?.saveData === true || conn?.effectiveType === "2g" || conn?.effectiveType === "slow-2g";
-    const decide = () => setEligible(wide.matches && !slow);
-    decide();
-    wide.addEventListener("change", decide);
-    return () => wide.removeEventListener("change", decide);
+    setEligible(!slow);
   }, []);
   return eligible;
 }

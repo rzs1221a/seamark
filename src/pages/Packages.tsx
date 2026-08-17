@@ -57,32 +57,13 @@ export function Packages() {
               />
             </div>
             <div className="mono-label mt-1">{tier.system}</div>
-            <p className="mt-3 text-sm text-(--muted) italic">{tier.audience}</p>
-            <p className="mt-3 text-sm leading-relaxed">{tier.summary ?? tier.pitch}</p>
+            <p className="mt-3 text-sm leading-relaxed text-(--muted)">{tier.pitch}</p>
 
             <div className="mt-5 max-w-72">
               <MiniPassage lit={tier.stations} />
             </div>
 
-            {tier.idealFor && (
-              <>
-                <div className="mono-label mt-6">Right if</div>
-                <ul className="mt-2 space-y-2 text-sm leading-relaxed text-(--muted)">
-                  {tier.idealFor.map((line) => (
-                    <li key={line} className="flex gap-2.5">
-                      <span
-                        aria-hidden="true"
-                        className="mt-2 h-1 w-1 shrink-0 rounded-full bg-(--lead)"
-                      />
-                      {line}
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-
-            <div className="mono-label mt-6">What you get</div>
-            <ul className="mt-2 space-y-2.5 text-sm leading-relaxed">
+            <ul className="mt-6 space-y-2.5 text-sm leading-relaxed">
               {tier.deliverables.map((d) => (
                 <li key={d} className="flex gap-2.5">
                   <span
@@ -121,29 +102,24 @@ export function Packages() {
         ))}
       </div>
 
-      {/* Two ways to pay */}
-      <section aria-label={payOptions.title} className="panel mt-8 p-6 sm:p-8" data-reveal>
-        <h2 className="text-xl tracking-tight">{payOptions.title}</h2>
-        <p className="mt-3 max-w-3xl leading-relaxed text-(--muted)">{payOptions.body}</p>
+      {/* Paying, and the published increase — one quiet seam. The January
+          figures stay behind the price gate. */}
+      <section aria-label={payOptions.title} className="panel-plain mt-8 p-6 sm:p-8" data-reveal>
+        <div className="mono-label">{payOptions.title}</div>
+        <p className="mt-3 max-w-3xl text-sm leading-relaxed text-(--muted)">{payOptions.body}</p>
+        {SHOW_PRICING && (
+          <>
+            <p className="mt-5 max-w-3xl text-sm leading-relaxed">{priceIncrease.body}</p>
+            <ul className="mono mt-3 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+              {priceIncrease.rows.map((row) => (
+                <li key={row.name} className="text-(--muted)">
+                  {row.name} <span className="text-(--ink)">{row.price}</span>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
       </section>
-
-      {/* The published increase — figures, so it lives behind the price gate. */}
-      {SHOW_PRICING && (
-      <section
-        aria-label="Prices through December 31"
-        className="panel-plain mt-5 p-6 sm:p-8"
-        data-reveal
-      >
-        <p className="leading-relaxed">{priceIncrease.body}</p>
-        <ul className="mono mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
-          {priceIncrease.rows.map((row) => (
-            <li key={row.name} className="text-(--muted)">
-              {row.name} <span className="text-(--ink)">{row.price}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
-      )}
 
       <section aria-label={comparisonTitle} className="mt-20">
         <h2 className="text-2xl sm:text-3xl" data-reveal>

@@ -276,6 +276,21 @@ function GeoScene({ active }: { active: boolean }) {
           /* path not measurable this frame */
         }
       } else {
+        if (path) {
+          // Docked: hold the smoothed path's end tangent, not the chord to
+          // the previous waypoint — otherwise the vessel snaps its heading
+          // the instant travel completes.
+          try {
+            const total = path.getTotalLength();
+            const p = path.getPointAtLength(total);
+            const back = path.getPointAtLength(Math.max(0, total - 2));
+            vx = p.x;
+            vy = p.y;
+            vang = (Math.atan2(p.y - back.y, p.x - back.x) * 180) / Math.PI;
+          } catch {
+            /* keep the chord fallback */
+          }
+        }
         for (const dot of wakeRefs.current) dot?.setAttribute("opacity", "0");
       }
       vesselRef.current?.setAttribute(
@@ -288,7 +303,10 @@ function GeoScene({ active }: { active: boolean }) {
       );
 
       // ——— the beam, from the real Light ———
-      const bearing = (Math.atan2(vy - lh.y, vx - lh.x) * 180) / Math.PI;
+      // Bearing is anchored to the fixed course origin, not the live vessel:
+      // the course passes close under the Light near landing, so a
+      // vessel-tracking bearing swings hard there and the beam bounces.
+      const bearing = (Math.atan2(pts[0].y - lh.y, pts[0].x - lh.x) * 180) / Math.PI;
       const angle = active ? bearing + ((t - FOUND_T) / BEAM_PERIOD) * 360 : bearing;
       beamRef.current?.setAttribute("transform", `rotate(${angle.toFixed(2)} ${lh.x.toFixed(1)} ${lh.y.toFixed(1)})`);
       beamRef.current?.querySelectorAll("path").forEach((p, i) => {
@@ -352,7 +370,9 @@ function GeoScene({ active }: { active: boolean }) {
         const sx = clamp(marina.x + 30, 16, w - 260);
         const sy = clamp(marina.y - 36, 0, h - 150);
         site.style.transform = `translate(${sx.toFixed(1)}px, ${sy.toFixed(1)}px)`;
-        site.style.filter = landed ? "drop-shadow(0 0 18px rgba(240,244,246,0.35))" : "none";
+        // Glow via class + box-shadow transition — a filter flip here forces
+        // a mid-loop re-raster of the composited layer and the loop hitches.
+        site.classList.toggle("is-landed", landed);
       }
       const barT = [clamp01((t - 6.8) / 0.35), clamp01((t - 7.2) / 0.35), clamp01((t - 7.6) / 0.35)];
       const targets = [86, 64, 76];
@@ -808,12 +828,7 @@ function DrawnScene({ active }: { active: boolean }) {
             </div>
           </div>
 
-          <div
-            className="absolute top-[57%] left-[54%] transition-shadow duration-500"
-            style={{
-              filter: landed ? "drop-shadow(0 0 18px rgba(240,244,246,0.35))" : "none",
-            }}
-          >
+          <div className={`absolute top-[57%] left-[54%] ${landed ? "is-landed" : ""}`}>
             <SiteCardShell bars={bars} />
           </div>
 
@@ -868,10 +883,10 @@ function DrawnScene({ active }: { active: boolean }) {
 
 /* ── the mobile vertical passage ────────────────────────────────────────── */
 
-function MobileConnector() {
+function MobileConnector({ connRef }: { connRef?: (el: SVGSVGElement | null) => void }) {
   return (
     <div className="flex justify-center py-1" aria-hidden="true">
-      <svg viewBox="0 0 8 40" className="h-10 w-2">
+      <svg ref={connRef} viewBox="0 0 8 40" className="h-10 w-2">
         <line
           x1="4"
           y1="0"
@@ -888,10 +903,106 @@ function MobileConnector() {
   );
 }
 
-/** ≤820px: the passage rotates vertical — the completed diagram, fully lit. */
-function MobileScene() {
+/**
+ * ≤820px: the passage rotates vertical over the same live water. The default
+ * markup is the COMPLETED diagram (crawlers and reduced motion read it whole);
+ * when active, the same clock that drives the desktop scene plays the beats
+ * top-to-bottom — typed query, connectors drawing, chips lighting, bars
+ * filling, the terminal receiving — one imperative writer, zero React frames.
+ */
+function MobileScene({ active = false }: { active?: boolean }) {
+  const rootRef = useRef<HTMLDivElement>(null);
+  const searchTextRef = useRef<HTMLSpanElement>(null);
+  const caretRef = useRef<HTMLSpanElement>(null);
+  const connRefs = useRef<Array<SVGSVGElement | null>>([]);
+  const chipRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const packWrapRef = useRef<HTMLDivElement>(null);
+  const siteWrapRef = useRef<HTMLDivElement>(null);
+  const barRefs = useRef<Array<HTMLSpanElement | null>>([]);
+  const termLineRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const termValRefs = useRef<Array<HTMLSpanElement | null>>([]);
+  const termRowRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const root = rootRef.current;
+    if (!root || !active) return;
+
+    // Each connector draws over its own beat; the middle one IS the course.
+    const CONN_WINDOWS: Array<[number, number]> = [
+      [FOUND_T - 0.55, FOUND_T],
+      [TRAVEL_START, TRAVEL_END],
+      [CAPTURE_START, CAPTURE_START + 0.8],
+    ];
+    const targets = [86, 64, 76];
+
+    const write = (t: number) => {
+      const found = t >= FOUND_T;
+      const landed = t >= LANDED_T;
+      const captured = t >= COMPLETE_T;
+      root.style.opacity = String(t >= FADE_START ? 1 - clamp01((t - FADE_START) / 0.5) : 1);
+      root.dataset.passageComplete = captured ? "true" : "false";
+
+      const st = typed(QUERY, t, TYPE_START, TYPE_END);
+      if (searchTextRef.current && searchTextRef.current.textContent !== st) {
+        searchTextRef.current.textContent = st;
+      }
+      if (caretRef.current) {
+        caretRef.current.style.display = t < TYPE_END + 0.4 ? "inline-block" : "none";
+      }
+
+      connRefs.current.forEach((svg, i) => {
+        if (!svg) return;
+        const [a, b] = CONN_WINDOWS[i];
+        const p = easeInOut(clamp01((t - a) / (b - a)));
+        svg.querySelector("line")?.setAttribute("y2", (32 * p).toFixed(1));
+        svg.querySelector("line")?.setAttribute("opacity", p > 0 ? "0.8" : "0");
+        svg.querySelector("path")?.setAttribute("opacity", p >= 1 ? "0.8" : "0");
+      });
+
+      const stations = [found, landed, captured];
+      chipRefs.current.forEach((el, i) => {
+        el?.firstElementChild?.classList.toggle("lit", stations[i]);
+      });
+
+      if (packWrapRef.current) {
+        packWrapRef.current.style.opacity = found ? "1" : "0";
+        packWrapRef.current.style.transform = found ? "translateY(0)" : "translateY(-8px)";
+      }
+
+      siteWrapRef.current?.classList.toggle("is-landed", landed);
+      const barT = [clamp01((t - 6.8) / 0.35), clamp01((t - 7.2) / 0.35), clamp01((t - 7.6) / 0.35)];
+      barRefs.current.forEach((bar, i) => {
+        if (bar) bar.style.width = `${(barT[i] * targets[i]).toFixed(1)}%`;
+      });
+
+      TERMINAL_LINES.forEach((line, i) => {
+        const el = termLineRefs.current[i];
+        const val = termValRefs.current[i];
+        if (!el || !val) return;
+        el.style.display = t >= line.at ? "block" : "none";
+        const slice = typed(line.val, t, line.at, line.at + 0.2);
+        if (val.textContent !== slice) val.textContent = slice;
+      });
+      if (termRowRef.current) termRowRef.current.style.display = t >= ROW_AT ? "block" : "none";
+    };
+
+    let raf = 0;
+    const start = performance.now();
+    const tick = (now: number) => {
+      raf = requestAnimationFrame(tick);
+      write(((now - start) / 1000) % LOOP);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => {
+      cancelAnimationFrame(raf);
+      // Leaving the loop (orientation change, motion preference): settle on
+      // the completed scene rather than wherever the clock stopped.
+      write(STATIC_T);
+    };
+  }, [active]);
+
   return (
-    <div className="passage-mobile px-4 pt-6" data-passage-complete="true">
+    <div ref={rootRef} className="passage-mobile px-4 pt-6" data-passage-complete="true">
       <div className="mx-auto max-w-90">
         <div className="scene-card p-3 w-full">
           <div className="flex items-center gap-2 rounded-full border border-(--hairline-faint) bg-(--bg)/80 px-3 py-1.5">
@@ -899,21 +1010,28 @@ function MobileScene() {
               <circle cx="10.5" cy="10.5" r="6" fill="none" stroke="currentColor" strokeWidth="2" />
               <line x1="15" y1="15" x2="20" y2="20" stroke="currentColor" strokeWidth="2" />
             </svg>
-            <span className="mono truncate text-xs text-(--ink)">{QUERY}</span>
+            <span className="mono truncate text-xs text-(--ink)">
+              <span ref={searchTextRef}>{QUERY}</span>
+              <span ref={caretRef} className="search-caret" style={{ display: "none" }} aria-hidden="true" />
+            </span>
           </div>
         </div>
-        <MobileConnector />
-        <div className="mb-2">
+        <MobileConnector connRef={(el) => void (connRefs.current[0] = el)} />
+        <div className="mb-2" ref={(el) => void (chipRefs.current[0] = el)}>
           <StationChip label="FOUND" />
         </div>
-        <PackCard compact />
-        <MobileConnector />
-        <div className="mb-2">
+        <div ref={packWrapRef} className="transition-all duration-500">
+          <PackCard compact />
+        </div>
+        <MobileConnector connRef={(el) => void (connRefs.current[1] = el)} />
+        <div className="mb-2" ref={(el) => void (chipRefs.current[1] = el)}>
           <StationChip label="LANDED" />
         </div>
-        <SiteCardShell fluid bars={[1, 1, 1]} />
-        <MobileConnector />
-        <div className="mb-2">
+        <div ref={siteWrapRef}>
+          <SiteCardShell fluid bars={[1, 1, 1]} barRefs={barRefs} />
+        </div>
+        <MobileConnector connRef={(el) => void (connRefs.current[2] = el)} />
+        <div className="mb-2" ref={(el) => void (chipRefs.current[2] = el)}>
           <StationChip label="CAPTURED" />
         </div>
         <div className="scene-card w-full p-3">
@@ -922,13 +1040,17 @@ function MobileScene() {
             <span className="mono text-[0.5625rem] text-(--muted)">BoldTrail — Lead Dropbox</span>
           </div>
           <div className="terminal mt-2">
-            {TERMINAL_LINES.map((line) => (
-              <div key={line.key}>
+            {TERMINAL_LINES.map((line, i) => (
+              <div key={line.key} ref={(el) => void (termLineRefs.current[i] = el)}>
                 <span className="t-key">{line.key.padEnd(5, " ")}</span>
-                <span className="t-val">{line.val}</span>
+                <span className="t-val" ref={(el) => void (termValRefs.current[i] = el)}>
+                  {line.val}
+                </span>
               </div>
             ))}
-            <div className="t-row mt-1.5">M. Carter — NEW LEAD</div>
+            <div className="t-row mt-1.5" ref={termRowRef}>
+              M. Carter — NEW LEAD
+            </div>
           </div>
         </div>
         <div className="mt-4">
@@ -963,7 +1085,8 @@ export function PassageHero() {
 
   useEffect(() => onMapReady(() => setGeoReady(true)), []);
 
-  const active = !reduced && wide && visible;
+  const animate = !reduced && visible;
+  const active = animate && wide;
 
   return (
     <section
@@ -975,7 +1098,7 @@ export function PassageHero() {
       <div className="passage-desktop">
         {geoReady ? <GeoScene active={active} /> : <DrawnScene active={active} />}
       </div>
-      <MobileScene />
+      <MobileScene active={animate && !wide} />
 
       <div className="relative z-10 mx-auto max-w-6xl px-4 pt-8 pb-14 sm:px-6 md:-mt-36 md:pt-0">
         <div className="hero-claim max-w-2xl">

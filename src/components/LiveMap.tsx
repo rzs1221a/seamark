@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import {
   FRAMES,
   APPROACH,
+  portraitAdjust,
   registerCamera,
   registerMapInstance,
   heroFlying,
@@ -71,11 +72,11 @@ export function LiveMap({ initialPath }: { initialPath: string }) {
         await import("maplibre-gl/dist/maplibre-gl.css");
         if (cancelled) return;
 
-        const home = FRAMES[initialPath] ?? FRAMES["/"];
+        const home = portraitAdjust(FRAMES[initialPath] ?? FRAMES["/"]);
         // The arrival: open far out over the Atlantic and flat, then descend —
         // the way you would actually approach this coast. Under reduced motion
         // the camera simply starts where it is going.
-        const opening = reduced ? home : APPROACH;
+        const opening = reduced ? home : portraitAdjust(APPROACH);
 
         map = new Map({
           container,
@@ -89,7 +90,8 @@ export function LiveMap({ initialPath }: { initialPath: string }) {
           attributionControl: { compact: true },
           // Capped below native retina: imagery hides the difference and the
           // GPU headroom goes to fluid flights instead of extra pixels.
-          pixelRatio: Math.min(window.devicePixelRatio || 1, 1.5),
+          // Phones run DPR 3 behind small glass — cap them harder still.
+          pixelRatio: Math.min(window.devicePixelRatio || 1, window.innerWidth < 821 ? 1.25 : 1.5),
           fadeDuration: 140,
         });
 

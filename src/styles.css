@@ -645,6 +645,21 @@ h3 {
     inset 0 0 14px var(--tint-2);
 }
 
+/* The landed glow — toggled as a class from the hero loop and transitioned
+   here, so the lit moment costs a compositor fade, not a filter re-raster. */
+.passage-hero .scene-card {
+  transition: box-shadow 0.6s ease-out;
+}
+
+.is-landed .scene-card {
+  box-shadow:
+    0 0 18px rgba(240, 244, 246, 0.3),
+    0 0 44px rgba(240, 244, 246, 0.1),
+    0 10px 40px rgba(0, 0, 0, 0.5),
+    inset 0 0 0 1px var(--tint-1),
+    inset 0 0 14px var(--tint-2);
+}
+
 @supports (backdrop-filter: blur(6px)) {
   .scene-card {
     background: rgba(10, 15, 19, 0.72);
