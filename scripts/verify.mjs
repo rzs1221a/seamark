@@ -46,7 +46,13 @@ for (const p of diskSet) if (!sitemapSet.has(p)) fail(`prerendered ${p} missing 
 if (failures.length === 0) ok(`sitemap contains exactly the ${diskPaths.length} prerendered routes`);
 const routes = [...sitemapSet];
 
-// ——— §6 budgets: total JS < 200KB gzipped, no image over 200KB ———
+// ——— §6 budgets ———
+// History: the original build spec set a 200KB total-JS gate with zero deps
+// beyond React + router. Adding the persistent MapLibre camera was a
+// deliberate, user-approved break of that rule; the gates now hold the line
+// where it still matters: the ENTRY path (everything a route needs before the
+// map ignites) stays under the original 200KB, the map engine must remain a
+// separate lazily-loaded chunk, and the total stays under 360KB gzipped.
 function walk(dir) {
   return readdirSync(dir).flatMap((entry) => {
     const full = join(dir, entry);
@@ -55,17 +61,33 @@ function walk(dir) {
 }
 const files = walk(dist);
 let jsGz = 0;
+let mapGz = 0;
+let sawMapChunk = false;
 for (const f of files) {
   const ext = extname(f);
-  if (ext === ".js") jsGz += gzipSync(readFileSync(f)).length;
+  if (ext === ".js") {
+    const gz = gzipSync(readFileSync(f)).length;
+    jsGz += gz;
+    if (/maplibre/.test(f)) {
+      mapGz += gz;
+      sawMapChunk = true;
+    }
+  }
   if ([".png", ".jpg", ".jpeg", ".webp", ".gif", ".avif", ".svg"].includes(ext)) {
     const kb = statSync(f).size / 1024;
     if (kb > 200) fail(`image over 200KB: ${f} (${kb.toFixed(0)}KB)`);
   }
 }
 const jsKb = jsGz / 1024;
-if (jsKb >= 200) fail(`total JS ${jsKb.toFixed(1)}KB gzipped — budget is 200KB`);
-else ok(`total JS ${jsKb.toFixed(1)}KB gzipped (budget 200KB); no oversized images`);
+const entryKb = (jsGz - mapGz) / 1024;
+if (!sawMapChunk) fail("maplibre is not split into its own lazy chunk");
+if (entryKb >= 200) fail(`non-map JS ${entryKb.toFixed(1)}KB gzipped — entry budget is 200KB`);
+if (jsKb >= 360) fail(`total JS ${jsKb.toFixed(1)}KB gzipped — budget is 360KB`);
+if (entryKb < 200 && jsKb < 360 && sawMapChunk) {
+  ok(
+    `JS budgets: entry ${entryKb.toFixed(1)}KB gz (limit 200), total ${jsKb.toFixed(1)}KB gz (limit 360), map chunk lazy; no oversized images`,
+  );
+}
 
 // ——— static server with clean URLs ———
 const MIME = {
@@ -116,7 +138,7 @@ const browser = await chromium
   });
   const page = await ctx.newPage();
   for (const route of routes) {
-    await page.goto(`${origin}${route}`, { waitUntil: "networkidle" });
+    await page.goto(`${origin}${route}`, { waitUntil: "load" });
     const main = page.locator("main");
     const opacity = await main.evaluate((el) => Number(getComputedStyle(el).opacity));
     const height = await main.evaluate((el) => el.getBoundingClientRect().height);
@@ -124,7 +146,7 @@ const browser = await chromium
     if (height < 200) fail(`${route}: main is ${height}px tall under reduced motion`);
     if (route === "/") {
       const complete = await page
-        .locator('.passage-desktop[data-passage-complete="true"]')
+        .locator('.passage-desktop [data-passage-complete="true"]')
         .count();
       if (complete === 0) fail(`/: reduced-motion hero does not show the completed passage`);
     }
@@ -137,7 +159,7 @@ const browser = await chromium
 {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await ctx.newPage();
-  await page.goto(`${origin}/`, { waitUntil: "networkidle" });
+  await page.goto(`${origin}/`, { waitUntil: "load" });
   const reached = new Set();
   for (let i = 0; i < 60; i++) {
     await page.keyboard.press("Tab");
@@ -166,7 +188,7 @@ for (const width of [390, 768, 1024, 1440]) {
   });
   const page = await ctx.newPage();
   for (const route of routes) {
-    await page.goto(`${origin}${route}`, { waitUntil: "networkidle" });
+    await page.goto(`${origin}${route}`, { waitUntil: "load" });
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
     );
@@ -186,7 +208,7 @@ for (const width of [390, 768, 1024, 1440]) {
   const page = await ctx.newPage();
   const known = new Set(routes);
   for (const route of routes) {
-    await page.goto(`${origin}${route}`, { waitUntil: "networkidle" });
+    await page.goto(`${origin}${route}`, { waitUntil: "load" });
     const hrefs = await page.$$eval("a[href]", (as) => as.map((a) => a.getAttribute("href")));
     for (const href of hrefs) {
       if (!href || !href.startsWith("/")) continue; // external / tel: / mailto: / sms:
@@ -202,7 +224,7 @@ for (const width of [390, 768, 1024, 1440]) {
 {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await ctx.newPage();
-  await page.goto(`${origin}/`, { waitUntil: "networkidle" });
+  await page.goto(`${origin}/`, { waitUntil: "load" });
   await page.waitForTimeout(3000);
   const { cls, lcp } = await page.evaluate(
     () =>

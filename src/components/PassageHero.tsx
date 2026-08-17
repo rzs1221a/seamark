@@ -1,16 +1,35 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import { Link } from "react-router-dom";
 import { PackCard } from "./PackCard";
+import {
+  FRAMES,
+  AMELIA_LIGHTHOUSE,
+  FERNANDINA_MARINA,
+  getMapInstance,
+  onMapReady,
+  markFlying,
+} from "../lib/cameraFrames";
 
 /**
- * The Passage — a looping ~12s SVG demonstration of one lead's journey:
+ * The Passage — a looping ~12s demonstration of one lead's journey:
  * FOUND (the beam finds the vessel) → LANDED (the site, forms filling) →
  * CAPTURED (the payload lands in BoldTrail).
  *
- * One rAF loop, no libraries. The initial render is the *completed* scene —
- * everything lit, vessel docked — which is exactly the designed static state
- * for prerendered HTML and for prefers-reduced-motion. Animation only starts
- * on the client, after first paint, on wide viewports, when motion is allowed.
+ * Two stagings of the same performance:
+ *
+ * — GeoScene: when the living coast is up, the course is authored in lng/lat
+ *   along the REAL approach — through the St. Marys entrance and down the
+ *   Amelia River to the Fernandina marina — and projected through the live
+ *   camera every frame, so the passage stays glued to the water while the
+ *   idle orbit breathes. The beam sweeps from the actual Amelia Island Light.
+ *
+ * — DrawnScene: the self-contained chart (no map dependency) for fallback:
+ *   tiles unavailable, WebGL missing, or the engine still loading.
+ *
+ * The initial render is the completed scene — the designed static state for
+ * prerendered HTML and prefers-reduced-motion. Animation starts only on the
+ * client, on wide viewports, when motion is allowed, while the hero is on
+ * screen.
  */
 
 const QUERY = "sell my house amelia island";
@@ -29,16 +48,7 @@ const PULSE_END = 8.7;
 const COMPLETE_T = 9.6;
 const FADE_START = 11.55;
 
-// lighthouse + geometry (viewBox 1200 × 560)
-const LH = { x: 905, y: 160 };
-const VESSEL_START = { x: 110, y: 340 };
-const BEARING_TO_VESSEL =
-  (Math.atan2(VESSEL_START.y - LH.y, VESSEL_START.x - LH.x) * 180) / Math.PI;
 const BEAM_PERIOD = 6; // seconds per revolution
-const COURSE_D = "M 110 340 C 300 295, 520 385, 690 362 C 780 350, 845 344, 868 352";
-const CAPTURE_D = "M 880 348 C 960 320, 1030 220, 1148 138";
-const DOCKED = { x: 868, y: 352, angle: 8 };
-const STATIC_BEAM_ANGLE = BEARING_TO_VESSEL; // fixed lit sector across the water
 
 const TERMINAL_LINES: Array<{ key: string; val: string; at: number }> = [
   { key: "SUBJ", val: "Add Contact", at: 8.7 },
@@ -54,18 +64,41 @@ function typed(text: string, t: number, start: number, end: number) {
   return text.slice(0, Math.floor(clamp01((t - start) / (end - start)) * text.length));
 }
 
-const SOUNDINGS: Array<[number, number, string]> = [
-  [180, 150, "18"],
-  [320, 90, "22"],
-  [90, 470, "15"],
-  [420, 250, "12"],
-  [560, 140, "17"],
-  [640, 460, "9"],
-  [310, 420, "11"],
-  [740, 250, "7"],
-  [520, 500, "14"],
-  [820, 470, "5"],
+/** The real approach: open Atlantic → the St. Marys entrance → the river →
+ *  the Fernandina Harbor Marina. */
+const COURSE_GEO: Array<[number, number]> = [
+  [-81.318, 30.692],
+  [-81.362, 30.704],
+  [-81.402, 30.708],
+  [-81.433, 30.7],
+  [-81.452, 30.689],
+  [-81.4618, 30.6785],
+  [-81.4655, 30.6705],
 ];
+const MARINA = FERNANDINA_MARINA;
+
+interface Pt {
+  x: number;
+  y: number;
+}
+
+/** Catmull-Rom through the projected waypoints, emitted as cubic beziers. */
+function smoothPath(pts: Pt[]): string {
+  if (pts.length < 2) return "";
+  let d = `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[Math.max(0, i - 1)];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[Math.min(pts.length - 1, i + 2)];
+    const c1x = p1.x + (p2.x - p0.x) / 6;
+    const c1y = p1.y + (p2.y - p0.y) / 6;
+    const c2x = p2.x - (p3.x - p1.x) / 6;
+    const c2y = p2.y - (p3.y - p1.y) / 6;
+    d += ` C ${c1x.toFixed(1)} ${c1y.toFixed(1)}, ${c2x.toFixed(1)} ${c2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+  }
+  return d;
+}
 
 function useMediaFlag(query: string) {
   const [on, setOn] = useState(false);
@@ -79,6 +112,8 @@ function useMediaFlag(query: string) {
   return on;
 }
 
+/* ── shared instrument cards ─────────────────────────────────────────────── */
+
 function StationChip({ label, lit }: { label: string; lit: boolean }) {
   return (
     <span className={`station-chip ${lit ? "lit" : ""}`}>
@@ -88,9 +123,17 @@ function StationChip({ label, lit }: { label: string; lit: boolean }) {
   );
 }
 
-function SearchCard({ text, caret }: { text: string; caret: boolean }) {
+function SearchCard({
+  text,
+  caret,
+  fluid = false,
+}: {
+  text: string;
+  caret: boolean;
+  fluid?: boolean;
+}) {
   return (
-    <div className="scene-card p-3" style={{ width: "min(300px, 26vw)" }}>
+    <div className="scene-card p-3" style={{ width: fluid ? "100%" : "min(300px, 26vw)" }}>
       <div className="flex items-center gap-2 rounded-full border border-(--hairline-faint) bg-(--bg)/80 px-3 py-1.5">
         <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 shrink-0 text-(--muted)" aria-hidden="true">
           <circle cx="10.5" cy="10.5" r="6" fill="none" stroke="currentColor" strokeWidth="2" />
@@ -105,10 +148,10 @@ function SearchCard({ text, caret }: { text: string; caret: boolean }) {
   );
 }
 
-function SiteCard({ bars }: { bars: [number, number, number] }) {
+function SiteCard({ bars, fluid = false }: { bars: [number, number, number]; fluid?: boolean }) {
   const targets = [86, 64, 76];
   return (
-    <div className="scene-card p-3" style={{ width: "min(230px, 20vw)" }}>
+    <div className="scene-card p-3" style={{ width: fluid ? "100%" : "min(225px, 19vw)" }}>
       <div className="flex items-center justify-between">
         <span className="tag">YOUR SITE</span>
         <span className="flex gap-1" aria-hidden="true">
@@ -130,9 +173,9 @@ function SiteCard({ bars }: { bars: [number, number, number] }) {
   );
 }
 
-function TerminalCard({ t }: { t: number }) {
+function TerminalCard({ t, fluid = false }: { t: number; fluid?: boolean }) {
   return (
-    <div className="scene-card p-3" style={{ width: "min(295px, 25vw)" }}>
+    <div className="scene-card p-3" style={{ width: fluid ? "100%" : "min(295px, 25vw)" }}>
       <div className="flex items-center justify-between border-b border-(--hairline-faint) pb-2">
         <span className="tag tag-lead">YOUR CRM</span>
         <span className="mono text-[0.5625rem] text-(--muted)">BoldTrail — Lead Dropbox</span>
@@ -166,7 +209,322 @@ function ChartKey() {
   );
 }
 
-function DesktopScene({
+/* ── timeline state derived per render ───────────────────────────────────── */
+
+function usePhases(t: number) {
+  return {
+    searchText: typed(QUERY, t, TYPE_START, TYPE_END),
+    found: t >= FOUND_T,
+    landed: t >= LANDED_T,
+    captured: t >= COMPLETE_T,
+    travelProg: easeInOut(clamp01((t - TRAVEL_START) / (TRAVEL_END - TRAVEL_START))),
+    bars: [
+      clamp01((t - 6.8) / 0.35),
+      clamp01((t - 7.2) / 0.35),
+      clamp01((t - 7.6) / 0.35),
+    ] as [number, number, number],
+    pulseProg:
+      t >= CAPTURE_START && t < PULSE_END
+        ? (t - CAPTURE_START) / (PULSE_END - CAPTURE_START)
+        : null,
+    fade: t >= FADE_START ? 1 - clamp01((t - FADE_START) / 0.5) : 1,
+  };
+}
+
+/* ── the geo scene: the Passage on the real coast ───────────────────────── */
+
+function GeoScene({
+  t,
+  animating,
+  onReplay,
+}: {
+  t: number;
+  animating: boolean;
+  onReplay: () => void;
+}) {
+  const boxRef = useRef<HTMLDivElement>(null);
+  const pathRef = useRef<SVGPathElement>(null);
+  const [size, setSize] = useState({ w: 0, h: 0 });
+  // Re-project on camera settle / resize when the timeline isn't driving.
+  const [, setStamp] = useState(0);
+
+  useEffect(() => {
+    const el = boxRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect;
+      setSize((prev) => (prev.w === width && prev.h === height ? prev : { w: width, h: height }));
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const map = getMapInstance();
+    if (!map || animating) return;
+    const bump = () => setStamp((s) => s + 1);
+    map.on("moveend", bump);
+    return () => {
+      map.off("moveend", bump);
+    };
+  }, [animating]);
+
+  const map = getMapInstance();
+  const { searchText, found, landed, captured, travelProg, bars, pulseProg, fade } = usePhases(t);
+
+  if (!map || size.w === 0) {
+    return <div ref={boxRef} className="relative h-[78vh] min-h-130" />;
+  }
+
+  const pts = COURSE_GEO.map((c) => map.project(c));
+  const lh = map.project(AMELIA_LIGHTHOUSE);
+  const marina = map.project(MARINA);
+  const courseD = smoothPath(pts);
+
+  // The capture line runs from the marina ashore to the terminal instrument.
+  const termAnchor: Pt = { x: size.w - Math.min(320, size.w * 0.22), y: size.h * 0.22 };
+  const captureD = `M ${marina.x} ${marina.y} C ${marina.x + 80} ${marina.y - 90}, ${termAnchor.x - 160} ${termAnchor.y + 120}, ${termAnchor.x} ${termAnchor.y}`;
+
+  // Vessel position along the course. The path element is read from the
+  // previous frame's commit — a 16ms lag the eye cannot see.
+  let vessel: Pt & { angle: number } = {
+    x: marina.x,
+    y: marina.y,
+    angle:
+      (Math.atan2(marina.y - pts[pts.length - 2].y, marina.x - pts[pts.length - 2].x) * 180) /
+      Math.PI,
+  };
+  const wake: Array<Pt & { o: number }> = [];
+  const path = pathRef.current;
+  if (path && travelProg < 1) {
+    try {
+      const total = path.getTotalLength();
+      const at = Math.max(1, total * travelProg);
+      const p = path.getPointAtLength(at);
+      const back = path.getPointAtLength(Math.max(0, at - 2));
+      vessel = {
+        x: p.x,
+        y: p.y,
+        angle: (Math.atan2(p.y - back.y, p.x - back.x) * 180) / Math.PI,
+      };
+      if (animating && travelProg > 0.02) {
+        for (let i = 1; i <= 5; i++) {
+          const behind = total * (travelProg - i * 0.022);
+          if (behind <= 0) break;
+          const wp = path.getPointAtLength(behind);
+          wake.push({ x: wp.x, y: wp.y, o: 0.55 * (1 - i / 6) });
+        }
+      }
+    } catch {
+      /* path not ready this frame */
+    }
+  }
+
+  // The beam sweeps from the real Amelia Island Light; at the FOUND moment it
+  // points at the vessel wherever the orbit has carried the frame.
+  const bearingToVessel = (Math.atan2(vessel.y - lh.y, vessel.x - lh.x) * 180) / Math.PI;
+  const beamAngle = animating ? bearingToVessel + ((t - FOUND_T) / BEAM_PERIOD) * 360 : bearingToVessel;
+  const beamLen = Math.max(size.w, size.h);
+
+  let pulse: Pt | null = null;
+  if (pulseProg !== null) {
+    // Sample the capture curve directly — cheap cubic evaluation.
+    const s = pulseProg;
+    const p0 = marina;
+    const p1 = { x: marina.x + 80, y: marina.y - 90 };
+    const p2 = { x: termAnchor.x - 160, y: termAnchor.y + 120 };
+    const p3 = termAnchor;
+    const u = 1 - s;
+    pulse = {
+      x: u * u * u * p0.x + 3 * u * u * s * p1.x + 3 * u * s * s * p2.x + s * s * s * p3.x,
+      y: u * u * u * p0.y + 3 * u * u * s * p1.y + 3 * u * s * s * p2.y + s * s * s * p3.y,
+    };
+  }
+
+  return (
+    <div
+      ref={boxRef}
+      className="relative h-[78vh] min-h-130"
+      style={{ opacity: fade }}
+      data-passage-complete={captured ? "true" : "false"}
+    >
+      <svg
+        viewBox={`0 0 ${size.w} ${size.h}`}
+        width="100%"
+        height="100%"
+        className="absolute inset-0"
+        aria-hidden="true"
+      >
+        <defs>
+          <linearGradient id="geoBeam" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stopColor="rgba(34,211,238,0.32)" />
+            <stop offset="1" stopColor="rgba(34,211,238,0)" />
+          </linearGradient>
+          <filter id="soften" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="6" />
+          </filter>
+          <filter id="glow" x="-80%" y="-80%" width="260%" height="260%">
+            <feGaussianBlur stdDeviation="2.4" />
+          </filter>
+        </defs>
+
+        {/* the beam, soft, from the real lighthouse */}
+        <g transform={`rotate(${beamAngle} ${lh.x} ${lh.y})`} filter="url(#soften)">
+          <path
+            d={`M ${lh.x} ${lh.y} L ${lh.x + beamLen} ${lh.y - beamLen * 0.075} L ${lh.x + beamLen} ${lh.y + beamLen * 0.075} Z`}
+            fill="url(#geoBeam)"
+          />
+        </g>
+
+        {/* the Light itself — Fl rhythm, luminance not strobe */}
+        <circle cx={lh.x} cy={lh.y} r="4.5" fill="var(--signal)" className="sig-fl-6s beacon-core" />
+        <circle cx={lh.x} cy={lh.y} r="11" fill="none" stroke="rgba(34,211,238,0.45)" strokeWidth="1" />
+        <circle cx={lh.x} cy={lh.y} r="20" fill="none" stroke="rgba(34,211,238,0.16)" strokeWidth="1" />
+
+        {/* plotted course — the passage plan */}
+        <path
+          d={courseD}
+          fill="none"
+          stroke="rgba(232,237,240,0.5)"
+          strokeWidth="1"
+          strokeDasharray="5 7"
+        />
+        {/* traveled portion, amber, glowing */}
+        <path
+          d={courseD}
+          fill="none"
+          stroke="var(--lead)"
+          strokeWidth="2.5"
+          opacity={travelProg > 0 ? 0.5 : 0}
+          filter="url(#glow)"
+          pathLength={1}
+          strokeDasharray={travelProg < 1 ? `${travelProg} 1` : undefined}
+        />
+        <path
+          ref={pathRef}
+          d={courseD}
+          fill="none"
+          stroke="var(--lead)"
+          strokeWidth="1.5"
+          opacity={travelProg > 0 ? 0.9 : 0}
+          pathLength={1}
+          strokeDasharray={travelProg < 1 ? `${travelProg} 1` : undefined}
+        />
+
+        {/* capture line ashore */}
+        <path
+          d={captureD}
+          fill="none"
+          stroke={captured ? "var(--lead)" : "rgba(232,237,240,0.45)"}
+          strokeWidth="1"
+          strokeDasharray="4 6"
+          opacity={captured ? 0.9 : 0.7}
+        />
+        {pulse && <circle cx={pulse.x} cy={pulse.y} r="3.5" fill="var(--lead)" filter="url(#glow)" />}
+
+        {/* wake */}
+        {wake.map((w, i) => (
+          <circle key={i} cx={w.x} cy={w.y} r="1.8" fill="var(--lead)" opacity={w.o} filter="url(#glow)" />
+        ))}
+
+        {/* the vessel — the lead, underway */}
+        <g transform={`translate(${vessel.x} ${vessel.y}) rotate(${vessel.angle})`}>
+          {found && t < TRAVEL_START + 0.6 && (
+            <circle r="15" fill="none" stroke="var(--lead)" strokeWidth="1" opacity="0.6" />
+          )}
+          <path d="M 9 0 L -7 -5 L -4 0 L -7 5 Z" fill="var(--lead)" filter="url(#glow)" />
+        </g>
+      </svg>
+
+      {/* instrument cards over the water */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute top-[7%] left-[3%]">
+          <SearchCard text={searchText} caret={animating && t < TYPE_END + 0.4} />
+          <div
+            className="mt-2 transition-all duration-500"
+            style={{
+              opacity: found ? 1 : 0,
+              transform: found ? "translateY(0)" : "translateY(-8px)",
+            }}
+          >
+            <div style={{ width: "min(300px, 26vw)" }}>
+              <PackCard compact />
+            </div>
+          </div>
+        </div>
+
+        {/* the site card rides at the marina — the pier the course ends on */}
+        <div
+          className="absolute transition-shadow duration-500"
+          style={{
+            transform: `translate(${marina.x + 30}px, ${marina.y - 36}px)`,
+            filter: landed ? "drop-shadow(0 0 18px rgba(34,211,238,0.35))" : "none",
+          }}
+        >
+          <SiteCard bars={bars} />
+        </div>
+
+        <div className="absolute top-[6%] right-[2%]">
+          <TerminalCard t={t} />
+        </div>
+
+        {/* station chips pinned to the real geography */}
+        <div
+          className="absolute"
+          style={{ transform: `translate(${pts[1].x - 96}px, ${pts[1].y + 18}px)` }}
+        >
+          <StationChip label="FOUND" lit={found} />
+        </div>
+        <div
+          className="absolute"
+          style={{ transform: `translate(${marina.x - 26}px, ${marina.y + 34}px)` }}
+        >
+          <StationChip label="LANDED" lit={landed} />
+        </div>
+        <div className="absolute top-[38%] right-[3%]">
+          <StationChip label="CAPTURED" lit={captured} />
+        </div>
+
+        <div className="pointer-events-auto absolute right-[2%] bottom-[4%] flex items-center gap-2">
+          <ChartKey />
+          <button
+            type="button"
+            onClick={onReplay}
+            className="scene-card mono px-3 py-2 text-[0.625rem] text-(--muted) transition-colors hover:text-(--signal)"
+            aria-label="Replay the passage"
+          >
+            ↻ REPLAY
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── the drawn scene: self-contained fallback chart ─────────────────────── */
+
+const LH = { x: 905, y: 160 };
+const VESSEL_START = { x: 110, y: 340 };
+const BEARING_TO_VESSEL =
+  (Math.atan2(VESSEL_START.y - LH.y, VESSEL_START.x - LH.x) * 180) / Math.PI;
+const COURSE_D = "M 110 340 C 300 295, 520 385, 690 362 C 780 350, 845 344, 868 352";
+const CAPTURE_D = "M 880 348 C 960 320, 1030 220, 1148 138";
+const DOCKED = { x: 868, y: 352, angle: 8 };
+
+const SOUNDINGS: Array<[number, number, string]> = [
+  [180, 150, "18"],
+  [320, 90, "22"],
+  [90, 470, "15"],
+  [420, 250, "12"],
+  [560, 140, "17"],
+  [640, 460, "9"],
+  [310, 420, "11"],
+  [740, 250, "7"],
+  [520, 500, "14"],
+  [820, 470, "5"],
+];
+
+function DrawnScene({
   t,
   animating,
   onReplay,
@@ -178,23 +536,11 @@ function DesktopScene({
   const coursePathRef = useRef<SVGPathElement>(null);
   const capturePathRef = useRef<SVGPathElement>(null);
 
-  const searchText = typed(QUERY, t, TYPE_START, TYPE_END);
-  const found = t >= FOUND_T;
-  const landed = t >= LANDED_T;
-  const captured = t >= COMPLETE_T;
-  const travelProg = easeInOut(clamp01((t - TRAVEL_START) / (TRAVEL_END - TRAVEL_START)));
-  const bars: [number, number, number] = [
-    clamp01((t - 6.8) / 0.35),
-    clamp01((t - 7.2) / 0.35),
-    clamp01((t - 7.6) / 0.35),
-  ];
-  const pulseProg = t >= CAPTURE_START && t < PULSE_END ? (t - CAPTURE_START) / (PULSE_END - CAPTURE_START) : null;
+  const { searchText, found, landed, captured, travelProg, bars, pulseProg, fade } = usePhases(t);
   const beamAngle = animating
     ? BEARING_TO_VESSEL + ((t - FOUND_T) / BEAM_PERIOD) * 360
-    : STATIC_BEAM_ANGLE;
-  const fade = t >= FADE_START ? 1 - clamp01((t - FADE_START) / 0.5) : 1;
+    : BEARING_TO_VESSEL;
 
-  // vessel position along the course (docked when the passage is complete)
   let vessel = DOCKED;
   let travelLen: { drawn: number; total: number } | null = null;
   const path = coursePathRef.current;
@@ -231,7 +577,7 @@ function DesktopScene({
 
   return (
     <div
-      className="passage-desktop relative"
+      className="relative"
       style={{ opacity: fade }}
       data-passage-complete={captured ? "true" : "false"}
     >
@@ -254,7 +600,6 @@ function DesktopScene({
 
           <rect width="1200" height="560" fill="url(#chartGrid)" />
 
-          {/* depth soundings — chart furniture, ≤8% */}
           {SOUNDINGS.map(([x, y, n]) => (
             <text
               key={`${x}-${y}`}
@@ -269,7 +614,6 @@ function DesktopScene({
             </text>
           ))}
 
-          {/* the shore */}
           <path
             d="M 900 0 C 878 62 866 118 882 178 C 900 248 876 328 890 380 C 902 428 942 468 982 560 L 1200 560 L 1200 0 Z"
             fill="var(--land)"
@@ -281,7 +625,6 @@ function DesktopScene({
             strokeWidth="1"
           />
 
-          {/* the beam, under everything that travels */}
           <g transform={`rotate(${beamAngle} ${LH.x} ${LH.y})`}>
             <path
               d={`M ${LH.x} ${LH.y} L ${LH.x + 920} ${LH.y - 62} L ${LH.x + 920} ${LH.y + 62} Z`}
@@ -289,7 +632,6 @@ function DesktopScene({
             />
           </g>
 
-          {/* the lighthouse — the agent's beacon */}
           <g>
             <line x1={LH.x} y1={LH.y + 26} x2={LH.x} y2={LH.y} stroke="var(--signal)" strokeWidth="2.5" />
             <path
@@ -298,11 +640,10 @@ function DesktopScene({
               strokeWidth="2"
               strokeLinecap="round"
             />
-            <circle cx={LH.x} cy={LH.y - 4} r="4.5" fill="var(--signal)" />
+            <circle cx={LH.x} cy={LH.y - 4} r="4.5" fill="var(--signal)" className="sig-fl-6s beacon-core" />
             <circle cx={LH.x} cy={LH.y - 4} r="10" fill="none" stroke="rgba(34,211,238,0.4)" strokeWidth="1" />
           </g>
 
-          {/* plotted course — the passage plan */}
           <path
             d={COURSE_D}
             fill="none"
@@ -310,7 +651,6 @@ function DesktopScene({
             strokeWidth="1"
             strokeDasharray="5 6"
           />
-          {/* traveled portion, drawing in amber behind the vessel */}
           <path
             ref={coursePathRef}
             d={COURSE_D}
@@ -321,13 +661,11 @@ function DesktopScene({
             strokeDasharray={travelLen ? `${travelLen.drawn} ${travelLen.total}` : undefined}
           />
 
-          {/* pier */}
           <g stroke="rgba(34,211,238,0.7)" strokeWidth="2" strokeLinecap="round">
             <line x1="870" y1="346" x2="892" y2="338" />
             <line x1="874" y1="356" x2="896" y2="350" />
           </g>
 
-          {/* capture line ashore */}
           <path
             ref={capturePathRef}
             d={CAPTURE_D}
@@ -339,12 +677,10 @@ function DesktopScene({
           />
           {pulse && <circle cx={pulse.x} cy={pulse.y} r="3.5" fill="var(--lead)" />}
 
-          {/* wake */}
           {wake.map((w, i) => (
             <circle key={i} cx={w.x} cy={w.y} r="1.6" fill="var(--lead)" opacity={w.o} />
           ))}
 
-          {/* the vessel — the lead, underway */}
           <g transform={`translate(${vessel.x} ${vessel.y}) rotate(${vessel.angle})`}>
             {found && t < TRAVEL_START + 0.6 && (
               <circle r="14" fill="none" stroke="var(--lead)" strokeWidth="1" opacity="0.6" />
@@ -353,7 +689,6 @@ function DesktopScene({
           </g>
         </svg>
 
-        {/* instrument cards over the chart */}
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute top-[6%] left-[3%]">
             <SearchCard text={searchText} caret={animating && t < TYPE_END + 0.4} />
@@ -383,7 +718,6 @@ function DesktopScene({
             <TerminalCard t={t} />
           </div>
 
-          {/* station chips along the route */}
           <div className="absolute top-[68%] left-[17%]">
             <StationChip label="FOUND" lit={found} />
           </div>
@@ -411,6 +745,8 @@ function DesktopScene({
   );
 }
 
+/* ── the mobile vertical passage ────────────────────────────────────────── */
+
 function MobileConnector() {
   return (
     <div className="flex justify-center py-1" aria-hidden="true">
@@ -436,9 +772,7 @@ function MobileScene() {
   return (
     <div className="passage-mobile px-4 pt-6" data-passage-complete="true">
       <div className="mx-auto max-w-90">
-        <div className="[&>div]:w-full!">
-          <SearchCard text={QUERY} caret={false} />
-        </div>
+        <SearchCard text={QUERY} caret={false} fluid />
         <MobileConnector />
         <div className="mb-2">
           <StationChip label="FOUND" lit />
@@ -448,16 +782,12 @@ function MobileScene() {
         <div className="mb-2">
           <StationChip label="LANDED" lit />
         </div>
-        <div className="[&>div]:w-full!">
-          <SiteCard bars={[1, 1, 1]} />
-        </div>
+        <SiteCard bars={[1, 1, 1]} fluid />
         <MobileConnector />
         <div className="mb-2">
           <StationChip label="CAPTURED" lit />
         </div>
-        <div className="[&>div]:w-full!">
-          <TerminalCard t={STATIC_T} />
-        </div>
+        <TerminalCard t={STATIC_T} fluid />
         <div className="mt-4">
           <ChartKey />
         </div>
@@ -466,15 +796,37 @@ function MobileScene() {
   );
 }
 
+/* ── the hero ───────────────────────────────────────────────────────────── */
+
+function useHeroVisible(ref: RefObject<HTMLElement | null>) {
+  const [visible, setVisible] = useState(true);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), {
+      threshold: 0.05,
+    });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [ref]);
+  return visible;
+}
+
 export function PassageHero() {
   const [t, setT] = useState(STATIC_T);
   const [animating, setAnimating] = useState(false);
+  const [geoReady, setGeoReady] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
   const startRef = useRef(0);
+  const pushedRef = useRef(false);
   const reduced = useMediaFlag("(prefers-reduced-motion: reduce)");
   const wide = useMediaFlag("(min-width: 821px)");
+  const visible = useHeroVisible(sectionRef);
+
+  useEffect(() => onMapReady(() => setGeoReady(true)), []);
 
   useEffect(() => {
-    if (reduced || !wide) {
+    if (reduced || !wide || !visible) {
       setAnimating(false);
       setT(STATIC_T);
       return;
@@ -488,31 +840,59 @@ export function PassageHero() {
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [reduced, wide]);
+  }, [reduced, wide, visible]);
+
+  // The camera leans in while the vessel runs, and settles back on the reset —
+  // part of the same performance, never a second one.
+  useEffect(() => {
+    if (!animating || !geoReady) return;
+    const map = getMapInstance();
+    if (!map) return;
+    const base = FRAMES["/"].zoom;
+    const inTravel = t >= TRAVEL_START && t < COMPLETE_T;
+    if (inTravel && !pushedRef.current) {
+      pushedRef.current = true;
+      markFlying(2800);
+      map.easeTo({ zoom: base + 0.16, duration: 2800, easing: (p) => 1 - Math.pow(1 - p, 4) });
+    } else if (!inTravel && t < TRAVEL_START && pushedRef.current) {
+      pushedRef.current = false;
+      markFlying(2200);
+      map.easeTo({ zoom: base, duration: 2200, easing: (p) => 1 - Math.pow(1 - p, 4) });
+    }
+  }, [t, animating, geoReady]);
+
+  const replay = () => {
+    startRef.current = performance.now();
+  };
 
   return (
-    <section className="passage-hero" aria-label="The passage — how a lead travels from a Google search to your CRM">
-      <DesktopScene
-        t={t}
-        animating={animating}
-        onReplay={() => {
-          startRef.current = performance.now();
-        }}
-      />
+    <section
+      ref={sectionRef}
+      className="passage-hero"
+      data-frame="/"
+      aria-label="The passage — how a lead travels from a Google search to your CRM"
+    >
+      <div className="passage-desktop">
+        {geoReady ? (
+          <GeoScene t={t} animating={animating} onReplay={replay} />
+        ) : (
+          <DrawnScene t={t} animating={animating} onReplay={replay} />
+        )}
+      </div>
       <MobileScene />
 
       <div className="relative z-10 mx-auto max-w-6xl px-4 pt-8 pb-14 sm:px-6 md:-mt-36 md:pt-0">
-        <div className="max-w-xl">
-          <h1 className="text-4xl leading-tight tracking-tight sm:text-5xl">
+        <div className="hero-claim max-w-2xl">
+          <h1 className="text-display">
             Get found. Get the lead.{" "}
             <span className="text-(--signal)">Own the whole route.</span>
           </h1>
-          <p className="mt-4 max-w-lg text-base leading-relaxed text-(--muted) sm:text-lg">
+          <p className="mt-4 max-w-lg text-base leading-relaxed text-(--ink) sm:text-lg">
             This is the passage every client travels — from a search box to your CRM. I build
             all of it, in your name, and it comes with you if you ever leave.
           </p>
           <div className="mt-6">
-            <Link to="/contact" className="btn-cta" data-cta="hero">
+            <Link to="/contact" className="btn-cta" data-cta="hero" data-magnetic>
               Twenty minutes, and you&rsquo;ll know
             </Link>
           </div>

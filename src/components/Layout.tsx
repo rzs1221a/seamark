@@ -1,7 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NavLink, Link, Outlet, useLocation } from "react-router-dom";
 import { brand, disclaimer } from "../lib/brand";
 import { CompassRose } from "./CompassRose";
+import { LiveMap } from "./LiveMap";
+import { flyToRoute } from "../lib/cameraFrames";
 
 const NAV = [
   { to: "/", label: "Home" },
@@ -31,17 +33,65 @@ function Mark() {
 }
 
 function ScrollToTop() {
-  const { pathname } = useLocation();
+  const { pathname, hash } = useLocation();
   useEffect(() => {
+    if (hash) {
+      const target = document.getElementById(hash.slice(1));
+      if (target) {
+        target.scrollIntoView();
+        return;
+      }
+    }
     window.scrollTo(0, 0);
+  }, [pathname, hash]);
+  return null;
+}
+
+/**
+ * Mount the living coast on capable machines only: wide viewports, no
+ * data-saver, no 2G. Phones keep the dark plate — cheap, no tile cost, and
+ * the vertical Passage diagram carries the story there.
+ */
+function useMapEligible() {
+  const [eligible, setEligible] = useState(false);
+  useEffect(() => {
+    const wide = window.matchMedia("(min-width: 821px)");
+    type NetInfo = { saveData?: boolean; effectiveType?: string };
+    const conn = (navigator as unknown as { connection?: NetInfo }).connection;
+    const slow =
+      conn?.saveData === true || conn?.effectiveType === "2g" || conn?.effectiveType === "slow-2g";
+    const decide = () => setEligible(wide.matches && !slow);
+    decide();
+    wide.addEventListener("change", decide);
+    return () => wide.removeEventListener("change", decide);
+  }, []);
+  return eligible;
+}
+
+/** Flies the persistent camera to each route as the URL changes. */
+function RouteCamera() {
+  const { pathname } = useLocation();
+  const first = useRef(true);
+  useEffect(() => {
+    // The arrival descent already targets the first route's frame.
+    if (first.current) {
+      first.current = false;
+      return;
+    }
+    flyToRoute(pathname);
   }, [pathname]);
   return null;
 }
 
 export function Layout() {
+  const mapEligible = useMapEligible();
+  const { pathname } = useLocation();
   return (
     <div className="flex min-h-screen flex-col">
       <ScrollToTop />
+      {mapEligible && <LiveMap initialPath={pathname} />}
+      <RouteCamera />
+      <div className="map-veil" aria-hidden="true" data-route={pathname} />
       <header className="sticky top-0 z-40 border-b border-(--hairline-faint) bg-(--bg)/85 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <Link to="/" className="flex items-center gap-2.5" aria-label={brand.name}>
@@ -74,7 +124,7 @@ export function Layout() {
         <Outlet />
       </main>
 
-      <footer className="relative mt-24 overflow-hidden border-t border-(--hairline-faint)">
+      <footer className="relative mt-24 overflow-hidden border-t border-(--hairline-faint) bg-(--land)">
         <CompassRose className="compass-watermark text-(--signal)" />
         <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-3">
           <div>

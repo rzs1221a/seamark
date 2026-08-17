@@ -34,11 +34,133 @@ html {
 }
 
 body {
-  background: var(--bg);
+  /* Transparent so the living coast (fixed, z:-2) shows through; the html
+     plate holds the dark until — and wherever — the map isn't there. */
+  background: transparent;
   color: var(--ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ————— the living coast ————— */
+.live-map {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  opacity: 0;
+  /* The ignition: tiles arrive, then the coast eases up out of the dark. */
+  transition: opacity 1.8s var(--ease-out-quart, cubic-bezier(0.25, 1, 0.5, 1));
+}
+
+.live-map[data-loaded="true"] {
+  opacity: 1;
+}
+
+/* MapLibre's stylesheet (loaded after ours, dynamically) forces
+   `position: relative` onto its mount node — which would collapse it out of
+   the fixed shell. Important wins regardless of load order. */
+.live-map > div {
+  position: absolute !important;
+  inset: 0;
+}
+
+.live-map .maplibregl-canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Attribution stays readable and clickable — it's a license term, not chrome. */
+.live-map .maplibregl-ctrl-attrib {
+  pointer-events: auto;
+  background: rgba(4, 7, 10, 0.55);
+  font-family: var(--font-mono);
+  font-size: 9px;
+}
+
+.live-map .maplibregl-ctrl-attrib a {
+  color: var(--muted);
+}
+
+/* Beacon markers: the shipped work, lit on the real coast. */
+.beacon {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: none;
+  border: 0;
+  padding: 0.3rem;
+  cursor: pointer;
+}
+
+.beacon .beacon-dot {
+  width: 9px;
+  height: 9px;
+}
+
+.beacon .beacon-name {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+  white-space: nowrap;
+  opacity: 1;
+  transition: opacity 0.4s ease-out;
+}
+
+.live-map[data-labels="off"] .beacon-name {
+  opacity: 0;
+}
+
+.beacon:hover .beacon-name,
+.beacon:focus-visible .beacon-name {
+  color: var(--signal);
+  opacity: 1;
+}
+
+/* ————— the veil —————
+   The shade between the coast and the copy. Sections read through it;
+   map-forward routes run it thin, reading routes run it heavy. */
+.map-veil {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(4, 7, 10, 0.6),
+    rgba(4, 7, 10, 0.74) 40%,
+    rgba(4, 7, 10, 0.86)
+  );
+  transition: opacity 0.9s ease-out;
+}
+
+/* Home: the hero fold is nearly clear — the Passage plays on real water —
+   then the shade takes over below. */
+.map-veil[data-route="/"] {
+  background: linear-gradient(
+    to bottom,
+    rgba(4, 7, 10, 0.18),
+    rgba(4, 7, 10, 0.1) 30%,
+    rgba(4, 7, 10, 0.55) 62%,
+    rgba(4, 7, 10, 0.85) 85%
+  );
+}
+
+/* Map-forward routes: the coast is part of the argument. */
+.map-veil[data-route="/work"],
+.map-veil[data-route="/contact"] {
+  background: linear-gradient(
+    to bottom,
+    rgba(4, 7, 10, 0.45),
+    rgba(4, 7, 10, 0.62) 45%,
+    rgba(4, 7, 10, 0.8)
+  );
 }
 
 ::selection {
@@ -51,6 +173,35 @@ h3 {
   font-weight: 600;
   letter-spacing: -0.02em;
   text-wrap: balance;
+}
+
+/* The display voice: fluid from phone to cinema, tight-tracked, never italic. */
+.text-display {
+  font-size: clamp(2.25rem, 1.3rem + 3.4vw, 4.25rem);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  font-weight: 600;
+}
+
+/* The hero copy arrives by transform only — opacity untouched, so the LCP
+   text paints at t=0. */
+.hero-claim {
+  animation: claim-settle 0.9s var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1)) both;
+}
+
+@keyframes claim-settle {
+  from {
+    transform: translateY(16px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-claim {
+    animation: none;
+  }
 }
 
 /* ————— instrument readings ————— */
@@ -215,9 +366,29 @@ h3 {
 .passage-hero {
   position: relative;
   overflow: hidden;
-  background:
-    radial-gradient(1200px 500px at 75% 0%, rgba(34, 211, 238, 0.06), transparent 60%),
-    var(--bg);
+  /* No opaque fill: the living coast shows through. The html plate holds the
+     dark whenever the map is absent. */
+  background: radial-gradient(1200px 500px at 75% 0%, rgba(34, 211, 238, 0.05), transparent 60%);
+}
+
+/* Legibility aperture under the hero claim — a shade with a soft hole, so the
+   copy sits on darkness while the water burns through everywhere else. */
+.hero-claim::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -4rem -30rem -6rem -12rem;
+  pointer-events: none;
+  background: radial-gradient(
+    70% 80% at 30% 55%,
+    rgba(4, 7, 10, 0.78),
+    rgba(4, 7, 10, 0.45) 55%,
+    transparent 80%
+  );
+}
+
+.hero-claim {
+  position: relative;
 }
 
 .passage-desktop {
@@ -444,7 +615,8 @@ h3 {
 .sig-lfl-8s { animation: sig-lfl-8s 8s linear infinite; }
 
 @media (prefers-reduced-motion: reduce) {
-  .beacon-dot[class*="sig-"] {
+  .beacon-dot[class*="sig-"],
+  svg [class*="sig-"] {
     animation: none;
     opacity: 1;
   }
