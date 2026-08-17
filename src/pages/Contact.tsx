@@ -1,11 +1,41 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { brand } from "../lib/brand";
 import { noContractLine } from "../lib/watch";
+import { tiers } from "../lib/offer";
+import { watchPlans } from "../lib/watch";
+import { FitQuiz } from "../components/FitQuiz";
 import { useReveals } from "../lib/useReveal";
+
+/** `/contact?rec=<tier>[+<plan>]&sum=<text>` → an editable prefill. */
+function usePrefill() {
+  const [params] = useSearchParams();
+  const rec = params.get("rec") ?? "";
+  const sum = params.get("sum") ?? "";
+  if (sum) return { rec, text: sum };
+  if (!rec) return { rec: "", text: "" };
+  const names = rec
+    .split("+")
+    .map(
+      (id) => tiers.find((t) => t.id === id)?.name ?? watchPlans.find((p) => p.id === id)?.name,
+    )
+    .filter(Boolean)
+    .join(" with the ");
+  return names ? { rec, text: `I'd like to talk about ${names}.` } : { rec: "", text: "" };
+}
 
 export function Contact() {
   const rootRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   useReveals(rootRef);
+  const prefill = usePrefill();
+
+  // Prefill after hydration (prerendered HTML has no params), and only into
+  // an empty field — never over something the visitor typed.
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (el && prefill.text && !el.value) el.value = prefill.text;
+  }, [prefill.text]);
   return (
     <div ref={rootRef} className="mx-auto max-w-5xl px-4 py-14 sm:px-6">
       <div className="mono-label">Contact</div>
@@ -17,7 +47,11 @@ export function Contact() {
         talk and tell you exactly what&rsquo;s missing, whether or not you ever hire me.
       </p>
 
-      <div className="mt-12 grid gap-10 md:grid-cols-[1fr_minmax(220px,0.6fr)]">
+      <div className="mt-10" data-reveal>
+        <FitQuiz heading="Not sure what to ask for? Sixty seconds." sheetBase="/packages" />
+      </div>
+
+      <div className="mt-10 grid gap-10 md:grid-cols-[1fr_minmax(220px,0.6fr)]">
         <form
           name="contact"
           method="POST"
@@ -28,6 +62,7 @@ export function Contact() {
           data-reveal
         >
           <input type="hidden" name="form-name" value="contact" />
+          {prefill.rec && <input type="hidden" name="recommended" value={prefill.rec} />}
           <p className="hidden">
             <label>
               Don&rsquo;t fill this out: <input name="bot-field" />
@@ -61,6 +96,7 @@ export function Contact() {
               id="c-now"
               name="working-with-now"
               rows={5}
+              ref={textareaRef}
               className="field mt-1.5"
               placeholder="A brokerage page? A profile you've never claimed? Nothing at all is a fine answer."
             />

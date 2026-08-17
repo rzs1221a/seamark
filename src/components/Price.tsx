@@ -8,18 +8,21 @@ export function Price({
   note,
   per,
   tone = "signal",
+  tag = false,
 }: {
   value: string;
   prefix?: string;
   note?: string;
   per?: string;
   tone?: "signal" | "lead";
+  /** Storefront treatment: render as a bordered mono price tag. */
+  tag?: boolean;
 }) {
   if (!SHOW_PRICING) {
     return <span className="mono text-xl text-(--signal)">Let&rsquo;s talk</span>;
   }
   return (
-    <span className="inline-flex items-baseline gap-1.5">
+    <span className={`inline-flex items-baseline gap-1.5 ${tag ? "price-tag" : ""}`}>
       {prefix && <span className="mono text-xs text-(--muted)">{prefix}</span>}
       <span
         className={`mono text-2xl font-medium ${tone === "lead" ? "text-(--lead)" : "text-(--signal)"}`}

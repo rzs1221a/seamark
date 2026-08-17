@@ -365,7 +365,7 @@ function GeoScene({ active }: { active: boolean }) {
         const sx = clamp(marina.x + 30, 16, w - 260);
         const sy = clamp(marina.y - 36, 0, h - 150);
         site.style.transform = `translate(${sx.toFixed(1)}px, ${sy.toFixed(1)}px)`;
-        site.style.filter = landed ? "drop-shadow(0 0 18px rgba(34,211,238,0.35))" : "none";
+        site.style.filter = landed ? "drop-shadow(0 0 18px rgba(240,244,246,0.35))" : "none";
       }
       const barT = [clamp01((t - 6.8) / 0.35), clamp01((t - 7.2) / 0.35), clamp01((t - 7.6) / 0.35)];
       const targets = [86, 64, 76];
@@ -448,16 +448,16 @@ function GeoScene({ active }: { active: boolean }) {
         <svg width="100%" height="100%" className="absolute inset-0" aria-hidden="true">
           <defs>
             <linearGradient id="geoBeam" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0" stopColor="rgba(34,211,238,0.3)" />
-              <stop offset="1" stopColor="rgba(34,211,238,0)" />
+              <stop offset="0" stopColor="rgba(240,244,246,0.3)" />
+              <stop offset="1" stopColor="rgba(240,244,246,0)" />
             </linearGradient>
             <linearGradient id="geoBeamSoft" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0" stopColor="rgba(34,211,238,0.12)" />
-              <stop offset="1" stopColor="rgba(34,211,238,0)" />
+              <stop offset="0" stopColor="rgba(240,244,246,0.12)" />
+              <stop offset="1" stopColor="rgba(240,244,246,0)" />
             </linearGradient>
             <radialGradient id="vesselGlow">
-              <stop offset="0" stopColor="rgba(245,180,69,0.5)" />
-              <stop offset="1" stopColor="rgba(245,180,69,0)" />
+              <stop offset="0" stopColor="rgba(185,106,153,0.5)" />
+              <stop offset="1" stopColor="rgba(185,106,153,0)" />
             </radialGradient>
           </defs>
 
@@ -470,8 +470,8 @@ function GeoScene({ active }: { active: boolean }) {
           {/* the Light itself — Fl rhythm, luminance not strobe */}
           <g ref={lampRef}>
             <circle r="4.5" fill="var(--signal)" className="sig-fl-6s beacon-core" />
-            <circle r="11" fill="none" stroke="rgba(34,211,238,0.45)" strokeWidth="1" />
-            <circle r="20" fill="none" stroke="rgba(34,211,238,0.2)" strokeWidth="1" className="breathe" />
+            <circle r="11" fill="none" stroke="rgba(240,244,246,0.45)" strokeWidth="1" />
+            <circle r="20" fill="none" stroke="rgba(240,244,246,0.2)" strokeWidth="1" className="breathe" />
           </g>
 
           {/* plotted course + traveled amber (double-stroke glow, no filter) */}
@@ -696,11 +696,11 @@ function DrawnScene({ active }: { active: boolean }) {
         >
           <defs>
             <pattern id="chartGrid" width="60" height="60" patternUnits="userSpaceOnUse">
-              <path d="M 60 0 L 0 0 0 60" fill="none" stroke="rgba(34,211,238,0.05)" strokeWidth="0.5" />
+              <path d="M 60 0 L 0 0 0 60" fill="none" stroke="rgba(240,244,246,0.05)" strokeWidth="0.5" />
             </pattern>
             <linearGradient id="beamGrad" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0" stopColor="rgba(34,211,238,0.34)" />
-              <stop offset="1" stopColor="rgba(34,211,238,0)" />
+              <stop offset="0" stopColor="rgba(240,244,246,0.34)" />
+              <stop offset="1" stopColor="rgba(240,244,246,0)" />
             </linearGradient>
           </defs>
 
@@ -727,7 +727,7 @@ function DrawnScene({ active }: { active: boolean }) {
           <path
             d="M 900 0 C 878 62 866 118 882 178 C 900 248 876 328 890 380 C 902 428 942 468 982 560"
             fill="none"
-            stroke="rgba(34,211,238,0.28)"
+            stroke="rgba(240,244,246,0.28)"
             strokeWidth="1"
           />
 
@@ -747,7 +747,7 @@ function DrawnScene({ active }: { active: boolean }) {
               strokeLinecap="round"
             />
             <circle cx={LH.x} cy={LH.y - 4} r="4.5" fill="var(--signal)" className="sig-fl-6s beacon-core" />
-            <circle cx={LH.x} cy={LH.y - 4} r="10" fill="none" stroke="rgba(34,211,238,0.4)" strokeWidth="1" />
+            <circle cx={LH.x} cy={LH.y - 4} r="10" fill="none" stroke="rgba(240,244,246,0.4)" strokeWidth="1" />
           </g>
 
           <path
@@ -767,7 +767,7 @@ function DrawnScene({ active }: { active: boolean }) {
             strokeDasharray={travelLen ? `${travelLen.drawn} ${travelLen.total}` : undefined}
           />
 
-          <g stroke="rgba(34,211,238,0.7)" strokeWidth="2" strokeLinecap="round">
+          <g stroke="rgba(240,244,246,0.7)" strokeWidth="2" strokeLinecap="round">
             <line x1="870" y1="346" x2="892" y2="338" />
             <line x1="874" y1="356" x2="896" y2="350" />
           </g>
@@ -825,7 +825,7 @@ function DrawnScene({ active }: { active: boolean }) {
           <div
             className="absolute top-[57%] left-[54%] transition-shadow duration-500"
             style={{
-              filter: landed ? "drop-shadow(0 0 18px rgba(34,211,238,0.35))" : "none",
+              filter: landed ? "drop-shadow(0 0 18px rgba(240,244,246,0.35))" : "none",
             }}
           >
             <SiteCardShell bars={bars} />
@@ -996,7 +996,7 @@ export function PassageHero() {
       <div className="relative z-10 mx-auto max-w-6xl px-4 pt-8 pb-14 sm:px-6 md:-mt-36 md:pt-0">
         <div className="hero-claim max-w-2xl">
           <h1 className="text-display">
-            Get found. Get the lead.{" "}
+            <span className="text-(--ink)/70">Get found. Get the lead.</span>{" "}
             <span className="text-(--signal)">Own the whole route.</span>
           </h1>
           <p className="mt-4 max-w-lg text-base leading-relaxed text-(--ink) sm:text-lg">

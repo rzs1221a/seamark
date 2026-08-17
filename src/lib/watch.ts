@@ -8,6 +8,8 @@ export interface WatchPlan {
   tagline: string;
   /** Who this plan fits and why — mechanism language, never an outcome claim. */
   pitch: string;
+  /** What the month actually looks like — the long story, spec-sheet depth. */
+  detail: string;
   badge?: { text: string; tone: "lead" };
   popular?: boolean;
   blurb?: string;
@@ -35,6 +37,8 @@ export const watchPlans: WatchPlan[] = [
     tagline: "The review engine",
     pitch:
       "The no-build entry point. If you own nothing yet, this is the one monthly that moves the lever Google still lets you move — and it needs nothing built first.",
+    detail:
+      "What the month looks like: when a closing happens, the review request goes out on a sequence rather than a sticky note — and keeps going, because a steady trickle beats a burst. When a review arrives, it gets an answer within a day, written in your voice, not a template's. Once a month your profile is audited — hours, photos, Q&A, services — because a profile that drifts out of date is a profile Google trusts less. It ends in a one-page report you can read at a stoplight.",
     badge: { text: "No build required", tone: "lead" },
     blurb:
       "Reviews requested, answered, and kept arriving. Among the signals Google weighs most in local results, reviews are the only one you can still move this month — and recency counts, so a steady trickle beats a burst every time.",
@@ -53,6 +57,8 @@ export const watchPlans: WatchPlan[] = [
     tagline: "Profile, capture, and reporting",
     pitch:
       "The default. Your profile managed like an asset, your capture path tested with a real synthetic lead every month rather than assumed, and a report that tells you where the calls actually came from.",
+    detail:
+      "Everything in Keeper, plus the profile worked as a channel: posts, offers, and new listings published as they happen, content updated as your inventory changes, Search Console watched so an indexing problem is caught the week it appears instead of the quarter it costs you. And the part nobody else does: once a month a test lead is pushed through your live form all the way into BoldTrail, and the result is shown to you — because a capture path that isn't tested fails silently, and the most expensive lead is the one that arrived and never landed anywhere. The monthly report reads like an instrument panel: calls, direction requests, form fills, and where each one came from.",
     popular: true,
     includes: [
       { text: "Everything in Keeper" },
@@ -74,6 +80,8 @@ export const watchPlans: WatchPlan[] = [
     tagline: "The site kept current",
     pitch:
       "For the agent who lists. Every new listing becomes a page while the sign is still wet, the market page stays current, and the site keeps earning its place in search instead of going stale.",
+    detail:
+      "Everything in Watch, plus the site itself kept alive: when you take a listing, it becomes a real page on your own domain — not just an MLS entry — while the sign is still wet. Once a month a market update page ships, so the site always has something recent to say about your ground. Once a quarter we sit down on the site itself: what's working, what's stale, what the next season needs. And when something has to move fast — a price change, a sold banner, a new headshot — it jumps the queue.",
     includes: [
       { text: "Everything in Watch" },
       { text: "New listing pages built as you list" },
@@ -83,14 +91,6 @@ export const watchPlans: WatchPlan[] = [
     ],
   },
 ];
-
-/** The build→monthly bridge, shown at every buying decision point. */
-export const keepItLit = {
-  pre: "Then keep it lit — the Watch from",
-  price: "$99",
-  per: "/mo",
-  post: ", no contract.",
-};
 
 export const noContractLine =
   "No contract on any of them. Cancel in a month and you keep the site, the domain, the profile, and every lead that ever came through it.";

@@ -212,7 +212,7 @@ for (const width of [390, 768, 1024, 1440]) {
     const hrefs = await page.$$eval("a[href]", (as) => as.map((a) => a.getAttribute("href")));
     for (const href of hrefs) {
       if (!href || !href.startsWith("/")) continue; // external / tel: / mailto: / sms:
-      const clean = href.split("#")[0].replace(/\/$/, "") || "/";
+      const clean = href.split("#")[0].split("?")[0].replace(/\/$/, "") || "/";
       if (!known.has(clean)) fail(`${route}: internal link ${href} has no prerendered target`);
     }
   }

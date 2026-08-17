@@ -14,7 +14,8 @@ export function PackCard({ compact = false }: { compact?: boolean }) {
       <div
         className={`mono flex flex-wrap items-center gap-x-1.5 ${compact ? "text-[0.625rem]" : "text-xs"}`}
       >
-        <span className="text-(--lead)" data-annot="reviews">
+        {/* Google's own star gold, fixed — the mock must read as Google. */}
+        <span style={{ color: "#fbbf24" }} data-annot="reviews">
           ★★★★★ 4.9 (87)
         </span>
         <span className="text-(--muted)">·</span>

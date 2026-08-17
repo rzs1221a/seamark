@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { RadarScope } from "../components/RadarScope";
 import { Price } from "../components/Price";
+import { PlanRow } from "../components/PlanRow";
 import { SHOW_PRICING } from "../lib/brand";
 import { watchHeader, watchLede, watchPlans, noContractLine, channel } from "../lib/watch";
 import { useReveals } from "../lib/useReveal";
@@ -12,7 +13,7 @@ function SailVsPower() {
       <g>
         <path d="M 40 52 L 80 52 L 72 60 L 48 60 Z" fill="none" stroke="var(--signal)" strokeWidth="1.25" />
         <line x1="60" y1="52" x2="60" y2="20" stroke="var(--signal)" strokeWidth="1.25" />
-        <path d="M 60 22 C 74 30 76 42 62 50 Z" fill="rgba(34,211,238,0.2)" stroke="var(--signal)" strokeWidth="1" />
+        <path d="M 60 22 C 74 30 76 42 62 50 Z" fill="rgba(240,244,246,0.2)" stroke="var(--signal)" strokeWidth="1" />
         <text x="60" y="74" textAnchor="middle" fontSize="8" fill="var(--muted)" style={{ fontFamily: "var(--font-mono)" }}>
           UNDER SAIL · NO METER
         </text>
@@ -21,7 +22,7 @@ function SailVsPower() {
       <g>
         <path d="M 210 52 L 250 52 L 242 60 L 218 60 Z" fill="none" stroke="var(--lead)" strokeWidth="1.25" />
         <rect x="222" y="42" width="14" height="10" fill="none" stroke="var(--lead)" strokeWidth="1" />
-        <path d="M 206 56 C 198 54 192 58 184 56 M 202 60 C 196 58 190 62 184 60" fill="none" stroke="rgba(245,180,69,0.6)" strokeWidth="1" />
+        <path d="M 206 56 C 198 54 192 58 184 56 M 202 60 C 196 58 190 62 184 60" fill="none" stroke="rgba(185,106,153,0.6)" strokeWidth="1" />
         <text x="230" y="74" textAnchor="middle" fontSize="8" fill="var(--muted)" style={{ fontFamily: "var(--font-mono)" }}>
           UNDER POWER · METER RUNS
         </text>
@@ -45,51 +46,22 @@ export function Watch() {
         <RadarScope />
       </div>
 
-      <div className="mt-14 grid gap-5 lg:grid-cols-3">
-        {watchPlans.map((plan, i) => (
-          <article
-            key={plan.id}
-            data-reveal
-            data-flick
-            data-scrub={(["a", "b", "c"] as const)[i % 3]}
-            className={`panel relative flex flex-col p-6 ${plan.popular ? "border-(--signal)/50" : ""}`}
-          >
-            {plan.popular && (
-              <span className="chip absolute -top-3 left-6 bg-(--bg)">Most popular</span>
-            )}
-            {plan.badge && (
-              <span className="chip chip-lead absolute -top-3 right-6 bg-(--bg)">
-                {plan.badge.text}
-              </span>
-            )}
-            <div className="flex items-baseline justify-between gap-3">
-              <h2 className="text-lg font-semibold tracking-tight">{plan.name}</h2>
+      {/* the shelf, then each plan at full depth */}
+      <div className="mt-10 grid gap-3 sm:grid-cols-3" data-reveal>
+        {watchPlans.map((plan) => (
+          <a key={plan.id} href={`#plan-${plan.id}`} className="shelf-tile">
+            <span className="flex items-baseline justify-between gap-2">
+              <span className="font-semibold tracking-tight">{plan.name}</span>
               <Price value={plan.price} per={plan.per} />
-            </div>
-            <div className="mono-label mt-1">{plan.tagline}</div>
-            <p className="mt-4 text-sm leading-relaxed">{plan.pitch}</p>
-            {plan.blurb && (
-              <p className="mt-3 text-sm leading-relaxed text-(--muted)">{plan.blurb}</p>
-            )}
-            <ul className="mt-5 space-y-2.5 text-sm leading-relaxed">
-              {plan.includes.map((item) => (
-                <li key={item.text} className="flex gap-2.5">
-                  <span aria-hidden="true" className="mt-2 h-1 w-1 shrink-0 rounded-full bg-(--signal)" />
-                  <span
-                    className={
-                      item.emphasis
-                        ? "font-semibold text-(--ink)"
-                        : item.text.startsWith("Everything in")
-                          ? "text-(--signal)"
-                          : "text-(--ink)"
-                    }
-                  >
-                    {item.text}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </article>
+            </span>
+            <span className="mono-label mt-1.5 block">{plan.tagline}</span>
+          </a>
+        ))}
+      </div>
+
+      <div className="mt-6">
+        {watchPlans.map((plan, i) => (
+          <PlanRow key={plan.id} plan={plan} index={i} />
         ))}
       </div>
 

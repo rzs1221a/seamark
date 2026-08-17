@@ -50,7 +50,7 @@ export function MiniPassage({ lit }: { lit: StationId[] }) {
             )}
             {on ? (
               <>
-                <circle cx={xs[i]} cy="16" r="7" fill="rgba(34,211,238,0.15)" />
+                <circle cx={xs[i]} cy="16" r="7" fill="rgba(240,244,246,0.15)" />
                 <circle cx={xs[i]} cy="16" r="3.5" fill="var(--signal)" />
               </>
             ) : (

@@ -23,12 +23,12 @@ export function RadarScope({ compact = false }: { compact?: boolean }) {
           cy={cy}
           r={r}
           fill="none"
-          stroke="rgba(34,211,238,0.14)"
+          stroke="rgba(240,244,246,0.14)"
           strokeWidth="1"
         />
       ))}
-      <line x1={cx} y1="12" x2={cx} y2="348" stroke="rgba(34,211,238,0.08)" strokeWidth="1" />
-      <line x1="12" y1={cy} x2="348" y2={cy} stroke="rgba(34,211,238,0.08)" strokeWidth="1" />
+      <line x1={cx} y1="12" x2={cx} y2="348" stroke="rgba(240,244,246,0.08)" strokeWidth="1" />
+      <line x1="12" y1={cy} x2="348" y2={cy} stroke="rgba(240,244,246,0.08)" strokeWidth="1" />
 
       {/* sweep: a trailing wedge, rotating about the scope center. The origin
           is in user coordinates (px lengths on SVG elements resolve in the
@@ -43,9 +43,9 @@ export function RadarScope({ compact = false }: { compact?: boolean }) {
       </g>
       <defs>
         <linearGradient id="sweepFade" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stopColor="rgba(34,211,238,0.24)" />
-          <stop offset="0.45" stopColor="rgba(34,211,238,0.08)" />
-          <stop offset="1" stopColor="rgba(34,211,238,0)" />
+          <stop offset="0" stopColor="rgba(240,244,246,0.24)" />
+          <stop offset="0.45" stopColor="rgba(240,244,246,0.08)" />
+          <stop offset="1" stopColor="rgba(240,244,246,0)" />
         </linearGradient>
       </defs>
 
@@ -62,7 +62,7 @@ export function RadarScope({ compact = false }: { compact?: boolean }) {
             style={{ animationDelay: `${(angles[i] / 360) * period}s` }}
           >
             <circle cx={x} cy={y} r="4" fill="var(--signal)" />
-            <circle cx={x} cy={y} r="9" fill="none" stroke="rgba(34,211,238,0.4)" strokeWidth="1" />
+            <circle cx={x} cy={y} r="9" fill="none" stroke="rgba(240,244,246,0.4)" strokeWidth="1" />
             <text
               x={left ? x - 14 : x + 14}
               y={y + 3}

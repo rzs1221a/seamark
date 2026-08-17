@@ -15,7 +15,8 @@ import { brand, ownershipContract } from "../lib/brand";
 import { stations, routeBandHeading, routeBandLede, type Station } from "../lib/stations";
 import { tiers, packagesLede, comparisonRows, comparisonTitle } from "../lib/offer";
 import { watchHeader, watchPlans, noContractLine, channel } from "../lib/watch";
-import { KeepItLit } from "../components/KeepItLit";
+import { FitQuiz } from "../components/FitQuiz";
+import { PlanRow } from "../components/PlanRow";
 import { processHeader, processSteps } from "../lib/process";
 import { faq } from "../lib/faq";
 import { useSectionCamera } from "../lib/useSectionCamera";
@@ -119,7 +120,7 @@ function TierRow({ index }: { index: number }) {
   const tier = tiers[index];
   const flipped = index % 2 === 1;
   return (
-    <article className="seam-top py-14 first:pt-0 first:before:hidden">
+    <article id={`tier-${tier.id}`} className="seam-top scroll-mt-24 py-14 first:pt-0 first:before:hidden">
       <div className="grid items-start gap-8 md:grid-cols-[1fr_1.2fr] md:gap-14">
         <div className={flipped ? "md:order-2" : ""} data-reveal data-scrub="a">
           <div className="flex flex-wrap items-center gap-3">
@@ -128,18 +129,20 @@ function TierRow({ index }: { index: number }) {
           </div>
           <div className="mono-label mt-1.5">{tier.system}</div>
           <div className="mt-4">
-            <Price value={tier.price} prefix={tier.pricePrefix} note={tier.priceNote} />
+            <Price value={tier.price} prefix={tier.pricePrefix} note={tier.priceNote} tag />
           </div>
           <p className="mt-3 text-sm text-(--muted) italic">{tier.audience}</p>
           <div className="mt-5 max-w-72">
             <MiniPassage lit={tier.stations} />
           </div>
           <p className="mt-5 leading-relaxed">{tier.pitch}</p>
-          <div className="mt-5 flex flex-col gap-2">
-            <Link to="/packages" className="link-draw mono inline-block self-start text-sm text-(--signal)">
-              The full build sheet →
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <Link to={`/contact?rec=${tier.id}`} className="btn-quiet" data-magnetic>
+              Start with {tier.name} →
             </Link>
-            <KeepItLit />
+            <Link to="/packages" className="link-draw mono text-sm text-(--muted)">
+              The full build sheet
+            </Link>
           </div>
         </div>
         <div className={flipped ? "md:order-1" : ""} data-reveal data-scrub="b">
@@ -185,62 +188,67 @@ function ComparisonCompact() {
   );
 }
 
-/* ── the Watch, visible ────────────────────────────────────────────────── */
+/* ── the shelf: browse the products, then read the spec sheets ─────────── */
+
+function Shelf({
+  items,
+  anchor,
+}: {
+  items: Array<{ id: string; name: string; price: React.ReactNode; line: string }>;
+  anchor: string;
+}) {
+  return (
+    <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-reveal>
+      {items.map((item) => (
+        <a key={item.id} href={`#${anchor}-${item.id}`} className="shelf-tile">
+          <span className="flex items-baseline justify-between gap-2">
+            <span className="font-semibold tracking-tight">{item.name}</span>
+            {item.price}
+          </span>
+          <span className="mono-label mt-1.5 block">{item.line}</span>
+        </a>
+      ))}
+    </div>
+  );
+}
+
+/* ── the Watch, at full depth ──────────────────────────────────────────── */
 
 function WatchShowcase() {
   return (
     <>
       <div className="grid items-center gap-10 lg:grid-cols-[1fr_auto]">
         <div data-reveal>
-          <div className="mono-label">The Watch · monthly · no contract</div>
+          <div className="mono-label">04 · The Watch — the keeping · monthly · no contract</div>
           <h2 className="mt-3 text-3xl tracking-tight sm:text-4xl">{watchHeader}</h2>
           <p className="mt-4 max-w-xl leading-relaxed text-(--muted)">
             The build is bought once and it is yours. What only exists monthly is the
             keeping: reviews arriving and answered, the profile accurate, the capture path
-            tested rather than assumed. That is the Watch.
+            tested rather than assumed. That is the Watch — three sizes of it, each below
+            at full depth.
           </p>
         </div>
         <div data-reveal data-scrub="b">
           <RadarScope compact />
         </div>
       </div>
-      <div className="mt-10 grid gap-5 lg:grid-cols-3">
+
+      <Shelf
+        anchor="plan"
+        items={watchPlans.map((plan) => ({
+          id: plan.id,
+          name: plan.name,
+          price: <Price value={plan.price} per={plan.per} />,
+          line: plan.tagline,
+        }))}
+      />
+
+      <div className="mt-6">
         {watchPlans.map((plan, i) => (
-          <article
-            key={plan.id}
-            data-reveal
-            data-flick
-            data-scrub={(["a", "b", "c"] as const)[i % 3]}
-            className={`panel relative flex flex-col p-6 ${plan.popular ? "border-(--signal)/50" : ""}`}
-          >
-            {plan.popular && <span className="chip absolute -top-3 left-6 bg-(--bg)">Most popular</span>}
-            {plan.badge && (
-              <span className="chip chip-lead absolute -top-3 right-6 bg-(--bg)">
-                {plan.badge.text}
-              </span>
-            )}
-            <div className="flex items-baseline justify-between gap-3">
-              <h3 className="text-lg font-semibold tracking-tight">{plan.name}</h3>
-              <Price value={plan.price} per={plan.per} />
-            </div>
-            <div className="mono-label mt-1">{plan.tagline}</div>
-            <p className="mt-4 text-sm leading-relaxed">{plan.pitch}</p>
-            <ul className="mt-4 space-y-2 text-sm leading-relaxed text-(--muted)">
-              {plan.includes.map((item) => (
-                <li key={item.text} className="flex gap-2.5">
-                  <span
-                    aria-hidden="true"
-                    className="mt-2 h-1 w-1 shrink-0 rounded-full bg-(--signal)"
-                  />
-                  <span className={item.emphasis ? "font-semibold text-(--ink)" : ""}>
-                    {item.text}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </article>
+          <PlanRow key={plan.id} plan={plan} index={i} />
         ))}
       </div>
+
       <p className="mx-auto mt-8 max-w-2xl text-center text-sm leading-relaxed" data-reveal>
         {noContractLine}
       </p>
@@ -276,7 +284,7 @@ export function Home() {
         className="mx-auto max-w-6xl px-4 py-24 sm:px-6"
       >
         <div className="max-w-2xl" data-reveal>
-          <div className="mono-label">The route</div>
+          <div className="mono-label">01 · The route</div>
           <h2 className="mt-3 text-3xl tracking-tight sm:text-4xl">{routeBandHeading}</h2>
           <p className="mt-4 leading-relaxed text-(--muted)">{routeBandLede}</p>
         </div>
@@ -300,18 +308,37 @@ export function Home() {
         className="seam-top mx-auto max-w-6xl px-4 py-24 sm:px-6"
       >
         <div className="max-w-2xl" data-reveal>
-          <div className="mono-label">The Build</div>
+          <div className="mono-label">03 · The Build — bought once</div>
           <h2 className="mt-3 text-3xl tracking-tight sm:text-4xl">
             One fee. Four sizes. Owned outright.
           </h2>
           <p className="mt-4 leading-relaxed text-(--muted)">{packagesLede}</p>
         </div>
-        <div className="mt-10">
+
+        <Shelf
+          anchor="tier"
+          items={tiers.map((tier) => ({
+            id: tier.id,
+            name: tier.name,
+            price: <Price value={tier.price} prefix={tier.pricePrefix} />,
+            line: tier.system,
+          }))}
+        />
+        <div className="mt-4" data-reveal>
+          <FitQuiz />
+        </div>
+
+        <div className="mt-6">
           {tiers.map((_, i) => (
             <TierRow key={tiers[i].id} index={i} />
           ))}
         </div>
         <ComparisonCompact />
+        <p className="mt-10 text-center" data-reveal>
+          <a href="#the-watch" className="link-draw mono text-sm text-(--signal)">
+            The build is bought once. What stays monthly lives below →
+          </a>
+        </p>
       </section>
 
       {/* Band 5 — the Watch, right where the buying decision happens */}
@@ -330,7 +357,10 @@ export function Home() {
         data-frame="home-costs"
         className="seam-top mx-auto max-w-6xl px-4 py-24 sm:px-6"
       >
-        <h2 className="text-2xl sm:text-3xl" data-reveal>
+        <div className="mono-label" data-reveal>
+          05 · The old route
+        </div>
+        <h2 className="mt-3 text-2xl sm:text-3xl" data-reveal>
           What the old route costs
         </h2>
         <p className="mt-2 max-w-xl text-(--muted)" data-reveal>
@@ -348,7 +378,7 @@ export function Home() {
         className="seam-top mx-auto max-w-6xl px-4 py-24 sm:px-6"
       >
         <div className="mono-label" data-reveal>
-          The process
+          06 · The process
         </div>
         <h2 className="mt-3 text-3xl tracking-tight sm:text-4xl" data-reveal>
           {processHeader}.
@@ -375,7 +405,7 @@ export function Home() {
         className="seam-top mx-auto max-w-3xl px-4 py-24 sm:px-6"
       >
         <div className="mono-label" data-reveal>
-          Questions
+          07 · Questions
         </div>
         <h2 className="mt-3 text-3xl tracking-tight sm:text-4xl" data-reveal>
           Answered straight.
@@ -398,6 +428,9 @@ export function Home() {
         data-frame="home-contract"
         className="seam-top mx-auto max-w-4xl px-4 py-24 sm:px-6"
       >
+        <div className="mono-label mb-6" data-reveal>
+          08 · The contract
+        </div>
         <div data-reveal>
           <Cartouche label={ownershipContract.label} text={ownershipContract.text} />
         </div>

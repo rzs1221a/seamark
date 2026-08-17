@@ -5,7 +5,6 @@ import { Price } from "../components/Price";
 import { tiers, packagesLede, comparisonTitle, comparisonRows } from "../lib/offer";
 import { watchHeader } from "../lib/watch";
 import { useReveals } from "../lib/useReveal";
-import { KeepItLit } from "../components/KeepItLit";
 
 export function Packages() {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -34,7 +33,7 @@ export function Packages() {
             )}
             <div className="flex flex-wrap items-baseline justify-between gap-3">
               <h2 className="text-xl font-semibold tracking-tight">{tier.name}</h2>
-              <Price value={tier.price} prefix={tier.pricePrefix} note={tier.priceNote} />
+              <Price value={tier.price} prefix={tier.pricePrefix} note={tier.priceNote} tag />
             </div>
             <div className="mono-label mt-1">{tier.system}</div>
             <p className="mt-3 text-sm text-(--muted) italic">{tier.audience}</p>
@@ -55,8 +54,10 @@ export function Packages() {
                 </li>
               ))}
             </ul>
-            <div className="mt-auto pt-5">
-              <KeepItLit to="/watch" />
+            <div className="mt-auto pt-6">
+              <Link to={`/contact?rec=${tier.id}`} className="btn-quiet" data-magnetic>
+                Start with {tier.name} →
+              </Link>
             </div>
           </article>
         ))}
