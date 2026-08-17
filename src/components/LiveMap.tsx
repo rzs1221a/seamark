@@ -87,7 +87,9 @@ export function LiveMap({ initialPath }: { initialPath: string }) {
           // The page scrolls; the map is a stage, not a widget.
           interactive: false,
           attributionControl: { compact: true },
-          pixelRatio: Math.min(window.devicePixelRatio || 1, 1.75),
+          // Capped below native retina: imagery hides the difference and the
+          // GPU headroom goes to fluid flights instead of extra pixels.
+          pixelRatio: Math.min(window.devicePixelRatio || 1, 1.5),
           fadeDuration: 140,
         });
 

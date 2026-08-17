@@ -15,6 +15,7 @@ import { brand, ownershipContract } from "../lib/brand";
 import { stations, routeBandHeading, routeBandLede, type Station } from "../lib/stations";
 import { tiers, packagesLede, comparisonRows, comparisonTitle } from "../lib/offer";
 import { watchHeader, watchPlans, noContractLine, channel } from "../lib/watch";
+import { KeepItLit } from "../components/KeepItLit";
 import { processHeader, processSteps } from "../lib/process";
 import { faq } from "../lib/faq";
 import { useSectionCamera } from "../lib/useSectionCamera";
@@ -134,9 +135,12 @@ function TierRow({ index }: { index: number }) {
             <MiniPassage lit={tier.stations} />
           </div>
           <p className="mt-5 leading-relaxed">{tier.pitch}</p>
-          <Link to="/packages" className="link-draw mono mt-5 inline-block text-sm text-(--signal)">
-            The full build sheet →
-          </Link>
+          <div className="mt-5 flex flex-col gap-2">
+            <Link to="/packages" className="link-draw mono inline-block self-start text-sm text-(--signal)">
+              The full build sheet →
+            </Link>
+            <KeepItLit />
+          </div>
         </div>
         <div className={flipped ? "md:order-1" : ""} data-reveal data-scrub="b">
           <div className="mono-label mb-3">Everything in {tier.name}</div>
@@ -291,6 +295,7 @@ export function Home() {
       {/* Band 4 — the Build, in depth */}
       <section
         aria-label="The Build"
+        id="the-build"
         data-frame="home-build"
         className="seam-top mx-auto max-w-6xl px-4 py-24 sm:px-6"
       >
@@ -309,7 +314,17 @@ export function Home() {
         <ComparisonCompact />
       </section>
 
-      {/* Band 5 — what the old route costs */}
+      {/* Band 5 — the Watch, right where the buying decision happens */}
+      <section
+        aria-label="The Watch"
+        id="the-watch"
+        data-frame="home-watch"
+        className="seam-top mx-auto max-w-6xl px-4 py-24 sm:px-6"
+      >
+        <WatchShowcase />
+      </section>
+
+      {/* Band 6 — what the old route costs */}
       <section
         aria-label="What the old route costs"
         data-frame="home-costs"
@@ -324,15 +339,6 @@ export function Home() {
         <div className="mt-8">
           <StatTiles facts={homeStatFacts} />
         </div>
-      </section>
-
-      {/* Band 6 — the Watch, visible */}
-      <section
-        aria-label="The Watch"
-        data-frame="home-watch"
-        className="seam-top mx-auto max-w-6xl px-4 py-24 sm:px-6"
-      >
-        <WatchShowcase />
       </section>
 
       {/* Band 7 — the process rail */}

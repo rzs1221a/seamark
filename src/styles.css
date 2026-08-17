@@ -46,6 +46,22 @@
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* Where custom easing curves exist, the two workhorse easings become real
+   springs — critically damped with a whisper of overshoot — and every
+   transition, reveal, and bloom on the site inherits the upgrade at once. */
+@supports (transition-timing-function: linear(0, 1)) {
+  :root {
+    --ease-out-expo: linear(
+      0, 0.163 2.7%, 0.428 6.5%, 0.698 11.4%, 0.867 16.5%, 0.962 22.4%,
+      1.008 29.9%, 1.019 38.5%, 1.008 53.9%, 1
+    );
+    --ease-out-quart: linear(
+      0, 0.24 4.4%, 0.52 9.6%, 0.744 15.4%, 0.888 21.6%, 0.964 28.7%,
+      0.996 38.4%, 1.004 51.7%, 1
+    );
+  }
 
   /* The grain: one inline turbulence tile, reused by every glass surface. */
   --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.5 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/></svg>");
@@ -403,6 +419,7 @@ h3 {
 }
 
 .btn-cta {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -413,9 +430,35 @@ h3 {
   border-radius: 0.625rem;
   padding: 0.8rem 1.4rem;
   transition:
-    transform var(--dur-1) var(--ease-out-expo),
+    transform var(--dur-2) var(--ease-out-expo),
     box-shadow var(--dur-2) var(--ease-out-expo);
   box-shadow: 0 0 24px rgba(34, 211, 238, 0.25);
+}
+
+/* The lit door: the primary CTA's halo breathes — opacity only, on its own
+   layer, so it costs the compositor nothing. */
+.btn-cta::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  box-shadow: 0 0 34px 4px rgba(34, 211, 238, 0.45);
+  opacity: 0.3;
+  animation: cta-breathe 4.5s var(--ease-in-out-soft) infinite;
+}
+
+@keyframes cta-breathe {
+  50% {
+    opacity: 0.85;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-cta::after {
+    animation: none;
+    opacity: 0.5;
+  }
 }
 
 .btn-cta:hover {
@@ -591,6 +634,12 @@ h3 {
   .scene-card {
     background: rgba(10, 15, 19, 0.72);
     backdrop-filter: blur(6px) saturate(200%) brightness(1.12);
+  }
+
+  /* Hero cards float over water that moves every frame; a lighter blur keeps
+     the resample cheap while the orbit breathes. */
+  .passage-hero .scene-card {
+    backdrop-filter: blur(3px) saturate(170%) brightness(1.1);
   }
 }
 

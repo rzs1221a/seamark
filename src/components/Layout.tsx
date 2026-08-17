@@ -6,6 +6,7 @@ import { LiveMap } from "./LiveMap";
 import { flyToRoute } from "../lib/cameraFrames";
 import { useSkylight } from "../lib/sky";
 import { useMagnetic } from "../lib/magnetic";
+import { KeepItLit } from "./KeepItLit";
 
 const NAV = [
   { to: "/", label: "Home" },
@@ -197,6 +198,9 @@ export function Layout() {
           <a href={`tel:${brand.phone}`} className="link-draw text-(--signal)">
             {brand.phoneDisplay}
           </a>
+        </p>
+        <p className="mt-3">
+          <KeepItLit to="/watch" />
         </p>
       </div>
 

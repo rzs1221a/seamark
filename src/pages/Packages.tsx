@@ -5,6 +5,7 @@ import { Price } from "../components/Price";
 import { tiers, packagesLede, comparisonTitle, comparisonRows } from "../lib/offer";
 import { watchHeader } from "../lib/watch";
 import { useReveals } from "../lib/useReveal";
+import { KeepItLit } from "../components/KeepItLit";
 
 export function Packages() {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -54,6 +55,9 @@ export function Packages() {
                 </li>
               ))}
             </ul>
+            <div className="mt-auto pt-5">
+              <KeepItLit to="/watch" />
+            </div>
           </article>
         ))}
       </div>

@@ -84,6 +84,14 @@ export const watchPlans: WatchPlan[] = [
   },
 ];
 
+/** The build→monthly bridge, shown at every buying decision point. */
+export const keepItLit = {
+  pre: "Then keep it lit — the Watch from",
+  price: "$99",
+  per: "/mo",
+  post: ", no contract.",
+};
+
 export const noContractLine =
   "No contract on any of them. Cancel in a month and you keep the site, the domain, the profile, and every lead that ever came through it.";
 
