@@ -1,7 +1,9 @@
+import { useRef } from "react";
 import { RadarScope } from "../components/RadarScope";
 import { Price } from "../components/Price";
 import { SHOW_PRICING } from "../lib/brand";
 import { watchHeader, watchLede, watchPlans, noContractLine, channel } from "../lib/watch";
+import { useReveals } from "../lib/useReveal";
 
 function SailVsPower() {
   return (
@@ -29,8 +31,10 @@ function SailVsPower() {
 }
 
 export function Watch() {
+  const rootRef = useRef<HTMLDivElement>(null);
+  useReveals(rootRef);
   return (
-    <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+    <div ref={rootRef} className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
       <div className="grid items-center gap-10 lg:grid-cols-2">
         <div>
           <div className="mono-label">The Watch · monthly</div>
@@ -42,9 +46,12 @@ export function Watch() {
       </div>
 
       <div className="mt-14 grid gap-5 lg:grid-cols-3">
-        {watchPlans.map((plan) => (
+        {watchPlans.map((plan, i) => (
           <article
             key={plan.id}
+            data-reveal
+            data-flick
+            data-scrub={(["a", "b", "c"] as const)[i % 3]}
             className={`panel relative flex flex-col p-6 ${plan.popular ? "border-(--signal)/50" : ""}`}
           >
             {plan.popular && (
@@ -90,7 +97,7 @@ export function Watch() {
       </p>
 
       {/* The Channel — the engine panel */}
-      <section aria-label="The Channel" className="panel mt-16 border-(--lead)/25 p-7 sm:p-9">
+      <section aria-label="The Channel" data-reveal className="panel mt-16 border-(--lead)/25 p-7 sm:p-9">
         <div className="flex flex-wrap items-baseline justify-between gap-4">
           <div>
             <div className="mono-label text-(--lead)!">Fuel gauge · runs only while you run it</div>

@@ -4,6 +4,8 @@ import { brand, disclaimer } from "../lib/brand";
 import { CompassRose } from "./CompassRose";
 import { LiveMap } from "./LiveMap";
 import { flyToRoute } from "../lib/cameraFrames";
+import { useSkylight } from "../lib/sky";
+import { useMagnetic } from "../lib/magnetic";
 
 const NAV = [
   { to: "/", label: "Home" },
@@ -68,7 +70,11 @@ function useMapEligible() {
   return eligible;
 }
 
-/** Flies the persistent camera to each route as the URL changes. */
+/**
+ * Navigation is travel: on every route change the camera flies AND the
+ * arriving page blooms open — one continuous move, never a cut. The bloom
+ * class is forced through a reflow so rapid navigations restart the cycle.
+ */
 function RouteCamera() {
   const { pathname } = useLocation();
   const first = useRef(true);
@@ -79,6 +85,14 @@ function RouteCamera() {
       return;
     }
     flyToRoute(pathname);
+    document.body.classList.remove("route-blooming");
+    void document.body.offsetWidth;
+    document.body.classList.add("route-blooming");
+    const timer = window.setTimeout(
+      () => document.body.classList.remove("route-blooming"),
+      640,
+    );
+    return () => window.clearTimeout(timer);
   }, [pathname]);
   return null;
 }
@@ -86,6 +100,8 @@ function RouteCamera() {
 export function Layout() {
   const mapEligible = useMapEligible();
   const { pathname } = useLocation();
+  useSkylight();
+  useMagnetic();
   return (
     <div className="flex min-h-screen flex-col">
       <ScrollToTop />
@@ -137,16 +153,16 @@ export function Layout() {
             </p>
             <div className="mono mt-5 space-y-1.5 text-sm">
               <div>
-                <a href={`tel:${brand.phone}`} className="text-(--signal) hover:underline">
+                <a href={`tel:${brand.phone}`} className="link-draw text-(--signal)">
                   {brand.phoneDisplay}
                 </a>
                 <span className="text-(--muted)"> · </span>
-                <a href={`sms:${brand.phone}`} className="text-(--signal) hover:underline">
+                <a href={`sms:${brand.phone}`} className="link-draw text-(--signal)">
                   text
                 </a>
               </div>
               <div>
-                <a href={`mailto:${brand.email}`} className="text-(--signal) hover:underline">
+                <a href={`mailto:${brand.email}`} className="link-draw text-(--signal)">
                   {brand.email}
                 </a>
               </div>

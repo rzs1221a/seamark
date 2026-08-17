@@ -49,10 +49,14 @@ export function ProofStrip() {
   if (liveWork.length === 0) return null;
   return (
     <section aria-label="Shipped work" className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-      <p className="text-lg text-(--ink)">{proofStripLine}</p>
+      <p className="text-lg text-(--ink)" data-reveal>
+        {proofStripLine}
+      </p>
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {liveWork.map((item) => (
-          <WorkCard key={item.slug} item={item} />
+        {liveWork.map((item, i) => (
+          <div key={item.slug} data-reveal data-scrub={(["a", "b", "c"] as const)[i % 3]}>
+            <WorkCard item={item} />
+          </div>
         ))}
       </div>
     </section>

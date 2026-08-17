@@ -1,8 +1,12 @@
+import { useRef } from "react";
 import { brand } from "../lib/brand";
+import { useReveals } from "../lib/useReveal";
 
 export function Contact() {
+  const rootRef = useRef<HTMLDivElement>(null);
+  useReveals(rootRef);
   return (
-    <div className="mx-auto max-w-5xl px-4 py-14 sm:px-6">
+    <div ref={rootRef} className="mx-auto max-w-5xl px-4 py-14 sm:px-6">
       <div className="mono-label">Contact</div>
       <h1 className="mt-3 text-3xl sm:text-4xl">Request a pilot.</h1>
       <p className="mt-4 max-w-2xl text-lg leading-relaxed text-(--muted)">
@@ -20,6 +24,7 @@ export function Contact() {
           netlify-honeypot="bot-field"
           className="panel space-y-4 p-6 sm:p-8"
           aria-label="Request a pilot"
+          data-reveal
         >
           <input type="hidden" name="form-name" value="contact" />
           <p className="hidden">
@@ -59,27 +64,27 @@ export function Contact() {
               placeholder="A brokerage page? A profile you've never claimed? Nothing at all is a fine answer."
             />
           </div>
-          <button type="submit" className="btn-cta" data-cta="contact-submit">
+          <button type="submit" className="btn-cta" data-cta="contact-submit" data-magnetic>
             Request the call
           </button>
         </form>
 
-        <div className="space-y-6">
+        <div className="space-y-6" data-reveal>
           <div>
             <div className="mono-label">Direct</div>
             <div className="mono mt-3 space-y-2 text-sm">
               <div>
-                <a href={`tel:${brand.phone}`} className="text-(--signal) hover:underline">
+                <a href={`tel:${brand.phone}`} className="link-draw text-(--signal)">
                   {brand.phoneDisplay}
                 </a>
               </div>
               <div>
-                <a href={`sms:${brand.phone}`} className="text-(--signal) hover:underline">
+                <a href={`sms:${brand.phone}`} className="link-draw text-(--signal)">
                   Text the same number
                 </a>
               </div>
               <div>
-                <a href={`mailto:${brand.email}`} className="text-(--signal) hover:underline">
+                <a href={`mailto:${brand.email}`} className="link-draw text-(--signal)">
                   {brand.email}
                 </a>
               </div>

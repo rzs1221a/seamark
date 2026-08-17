@@ -1,12 +1,16 @@
+import { useRef } from "react";
 import { Link } from "react-router-dom";
 import { MiniPassage } from "../components/MiniPassage";
 import { Price } from "../components/Price";
 import { tiers, packagesLede, comparisonTitle, comparisonRows } from "../lib/offer";
 import { watchHeader } from "../lib/watch";
+import { useReveals } from "../lib/useReveal";
 
 export function Packages() {
+  const rootRef = useRef<HTMLDivElement>(null);
+  useReveals(rootRef);
   return (
-    <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+    <div ref={rootRef} className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
       <div className="mono-label">The Build</div>
       <h1 className="mt-3 max-w-2xl text-3xl sm:text-4xl">
         One fee. After launch, you own all of it.
@@ -14,9 +18,12 @@ export function Packages() {
       <p className="mt-4 max-w-2xl text-lg leading-relaxed text-(--muted)">{packagesLede}</p>
 
       <div className="mt-12 grid gap-5 md:grid-cols-2">
-        {tiers.map((tier) => (
+        {tiers.map((tier, i) => (
           <article
             key={tier.id}
+            data-reveal
+            data-flick
+            data-scrub={(["a", "b"] as const)[i % 2]}
             className={`panel relative flex flex-col p-6 sm:p-7 ${
               tier.popular ? "border-(--signal)/50" : ""
             }`}
@@ -51,8 +58,10 @@ export function Packages() {
       </div>
 
       <section aria-label={comparisonTitle} className="mt-20">
-        <h2 className="text-2xl sm:text-3xl">{comparisonTitle}</h2>
-        <div className="panel-plain mt-6 overflow-x-auto">
+        <h2 className="text-2xl sm:text-3xl" data-reveal>
+          {comparisonTitle}
+        </h2>
+        <div className="panel-plain mt-6 overflow-x-auto" data-reveal>
           <table className="w-full min-w-160 text-left text-sm">
             <thead>
               <tr className="border-b border-(--hairline-faint)">
@@ -65,7 +74,9 @@ export function Packages() {
               {comparisonRows.map((row) => (
                 <tr key={row.question} className="border-b border-(--hairline-faint) last:border-0">
                   <td className="p-4 align-top font-medium">{row.question}</td>
-                  <td className="p-4 align-top leading-relaxed text-(--muted)">{row.them}</td>
+                  <td className="p-4 align-top leading-relaxed text-(--muted)">
+                    <span className="strike">{row.them}</span>
+                  </td>
                   <td className="p-4 align-top leading-relaxed">{row.us}</td>
                 </tr>
               ))}
@@ -76,6 +87,7 @@ export function Packages() {
 
       <Link
         to="/watch"
+        data-reveal
         className="panel mt-16 flex flex-col gap-4 p-8 transition-colors hover:border-(--signal)/50 sm:flex-row sm:items-center sm:justify-between"
       >
         <div>

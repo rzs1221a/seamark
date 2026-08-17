@@ -379,7 +379,15 @@ function GeoScene({
         {/* the Light itself — Fl rhythm, luminance not strobe */}
         <circle cx={lh.x} cy={lh.y} r="4.5" fill="var(--signal)" className="sig-fl-6s beacon-core" />
         <circle cx={lh.x} cy={lh.y} r="11" fill="none" stroke="rgba(34,211,238,0.45)" strokeWidth="1" />
-        <circle cx={lh.x} cy={lh.y} r="20" fill="none" stroke="rgba(34,211,238,0.16)" strokeWidth="1" />
+        <circle
+          cx={lh.x}
+          cy={lh.y}
+          r="20"
+          fill="none"
+          stroke="rgba(34,211,238,0.2)"
+          strokeWidth="1"
+          className="breathe"
+        />
 
         {/* plotted course — the passage plan */}
         <path

@@ -63,7 +63,7 @@ export function Work() {
                     href={item.liveUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="mono text-sm text-(--signal) hover:underline"
+                    className="link-draw mono text-sm text-(--signal)"
                   >
                     {item.liveUrl.replace("https://", "")} ↗
                   </a>

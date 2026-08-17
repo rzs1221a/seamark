@@ -7,12 +7,14 @@ import { Cartouche } from "../components/Cartouche";
 import { homeStatFacts } from "../lib/facts";
 import { ownershipContract } from "../lib/brand";
 import { useSectionCamera } from "../lib/useSectionCamera";
+import { useReveals } from "../lib/useReveal";
 
 // The homepage: one demonstration, one wound, one promise, one door.
 // The coast beneath flies with the reader — each band declares its frame.
 export function Home() {
   const rootRef = useRef<HTMLDivElement>(null);
   useSectionCamera(rootRef);
+  useReveals(rootRef);
   return (
     <div ref={rootRef}>
       <PassageHero />
@@ -28,8 +30,10 @@ export function Home() {
         data-frame="home-costs"
         className="mx-auto max-w-6xl px-4 py-16 sm:px-6"
       >
-        <h2 className="text-2xl sm:text-3xl">What the old route costs</h2>
-        <p className="mt-2 max-w-xl text-(--muted)">
+        <h2 className="text-2xl sm:text-3xl" data-reveal>
+          What the old route costs
+        </h2>
+        <p className="mt-2 max-w-xl text-(--muted)" data-reveal>
           This is the picture of value flowing the wrong way.
         </p>
         <div className="mt-8">
@@ -43,9 +47,11 @@ export function Home() {
         data-frame="home-contract"
         className="mx-auto max-w-4xl px-4 py-16 sm:px-6"
       >
-        <Cartouche label={ownershipContract.label} text={ownershipContract.text} />
-        <div className="mt-10 text-center">
-          <Link to="/contact" className="btn-cta" data-cta="home-contract">
+        <div data-reveal>
+          <Cartouche label={ownershipContract.label} text={ownershipContract.text} />
+        </div>
+        <div className="mt-10 text-center" data-reveal>
+          <Link to="/contact" className="btn-cta" data-cta="home-contract" data-magnetic>
             Twenty minutes, and you&rsquo;ll know
           </Link>
         </div>
