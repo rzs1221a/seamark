@@ -6,6 +6,8 @@ export interface WatchPlan {
   price: string;
   per: string;
   tagline: string;
+  /** Who this plan fits and why — mechanism language, never an outcome claim. */
+  pitch: string;
   badge?: { text: string; tone: "lead" };
   popular?: boolean;
   blurb?: string;
@@ -31,6 +33,8 @@ export const watchPlans: WatchPlan[] = [
     price: "$99",
     per: "/mo",
     tagline: "The review engine",
+    pitch:
+      "The no-build entry point. If you own nothing yet, this is the one monthly that moves the lever Google still lets you move — and it needs nothing built first.",
     badge: { text: "No build required", tone: "lead" },
     blurb:
       "Reviews requested, answered, and kept arriving. Among the signals Google weighs most in local results, reviews are the only one you can still move this month — and recency counts, so a steady trickle beats a burst every time.",
@@ -47,6 +51,8 @@ export const watchPlans: WatchPlan[] = [
     price: "$249",
     per: "/mo",
     tagline: "Profile, capture, and reporting",
+    pitch:
+      "The default. Your profile managed like an asset, your capture path tested with a real synthetic lead every month rather than assumed, and a report that tells you where the calls actually came from.",
     popular: true,
     includes: [
       { text: "Everything in Keeper" },
@@ -66,6 +72,8 @@ export const watchPlans: WatchPlan[] = [
     price: "$499",
     per: "/mo",
     tagline: "The site kept current",
+    pitch:
+      "For the agent who lists. Every new listing becomes a page while the sign is still wet, the market page stays current, and the site keeps earning its place in search instead of going stale.",
     includes: [
       { text: "Everything in Watch" },
       { text: "New listing pages built as you list" },

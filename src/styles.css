@@ -79,6 +79,8 @@ html {
   background: var(--bg);
   color-scheme: dark;
   scroll-behavior: smooth;
+  /* anchor/hash arrivals never hide under the sticky masthead */
+  scroll-padding-top: 5rem;
 }
 
 body {
@@ -198,6 +200,26 @@ body {
     rgba(4, 7, 10, 0.48) 62%,
     rgba(4, 7, 10, 0.84) 85%
   );
+}
+
+/* Past the fold, the reading shade rises over the whole frame; it lifts
+   again when the reader returns to the hero. */
+.map-veil::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(4, 7, 10, 0.66),
+    rgba(4, 7, 10, 0.55) 45%,
+    rgba(4, 7, 10, 0.8)
+  );
+  transition: opacity 0.9s var(--ease-in-out-soft);
+}
+
+.map-veil[data-route="/"][data-scrolled="true"]::after {
+  opacity: 1;
 }
 
 /* Map-forward routes: the coast is part of the argument. */
@@ -638,10 +660,10 @@ h3 {
 }
 
 /* ————— radar scope (/watch) ————— */
+/* Rotation origin comes from the component inline (view-box units), so the
+   sweep turns about the scope's true center rather than its own bounds. */
 .radar-sweep {
   animation: radar-rotate 8s linear infinite;
-  transform-origin: center;
-  transform-box: fill-box;
 }
 
 @keyframes radar-rotate {
@@ -808,12 +830,12 @@ h3 {
 @keyframes route-bloom-panel {
   0% {
     opacity: 0;
-    clip-path: ellipse(4% 4% at 50% 42%);
-    filter: blur(10px) saturate(0.7) brightness(0.6);
+    clip-path: ellipse(5% 5% at 50% 44%);
+    filter: blur(7px) saturate(0.75) brightness(0.65);
   }
   100% {
     opacity: 1;
-    clip-path: ellipse(145% 115% at 50% 42%);
+    clip-path: ellipse(145% 115% at 50% 44%);
     filter: none;
   }
 }
@@ -833,18 +855,14 @@ h3 {
   body.route-blooming main .panel,
   body.route-blooming main .panel-plain,
   body.route-blooming main .cartouche {
-    animation: route-bloom-panel 0.42s var(--ease-out-quart) both;
+    animation: route-bloom-panel 0.5s var(--ease-out-quart) both;
   }
 
   body.route-blooming main .btn-cta,
   body.route-blooming main .btn-quiet,
   body.route-blooming main .chip,
   body.route-blooming main .station-chip {
-    animation: route-bloom-control 0.34s var(--ease-out-quart) both;
-  }
-
-  body.route-blooming main h1 {
-    animation: claim-settle 0.6s var(--ease-out-expo) both;
+    animation: route-bloom-control 0.38s var(--ease-out-quart) both;
   }
 }
 
@@ -875,10 +893,10 @@ h3 {
 @media (prefers-reduced-motion: no-preference) {
   [data-reveal] {
     opacity: 0;
-    transform: translateY(22px) scale(0.985);
+    transform: translateY(18px) scale(0.99);
     transition:
-      opacity var(--dur-4) var(--ease-out-quart),
-      transform var(--dur-4) var(--ease-out-quart);
+      opacity var(--dur-5) var(--ease-out-quart),
+      transform var(--dur-5) var(--ease-out-quart);
   }
 
   [data-reveal].is-revealed {
@@ -896,12 +914,13 @@ h3 {
   }
 
   [data-reveal].is-revealed > [data-reveal-child]:nth-child(3) {
-    transition-delay: 180ms;
+    transition-delay: 160ms;
   }
 
   /* Tier 2: where scroll-driven animations exist, the reveal becomes a scrub —
      the visitor's own hand drives it. Siblings arrive on different windows,
-     which is what creates depth. */
+     which is what creates depth. Windows end early enough that everything has
+     finished settling before the eye reaches it. */
   @supports (animation-timeline: view()) {
     [data-reveal] {
       opacity: 1;
@@ -909,19 +928,19 @@ h3 {
       transition: none;
       animation: scrub-rise both;
       animation-timeline: view();
-      animation-range: entry 5% entry 85%;
+      animation-range: entry 0% entry 75%;
     }
 
     [data-reveal][data-scrub="a"] {
-      animation-range: entry 0% entry 70%;
+      animation-range: entry 0% entry 60%;
     }
 
     [data-reveal][data-scrub="b"] {
-      animation-range: entry 15% entry 85%;
+      animation-range: entry 10% entry 75%;
     }
 
     [data-reveal][data-scrub="c"] {
-      animation-range: entry 30% entry 100%;
+      animation-range: entry 20% entry 90%;
     }
 
     [data-reveal][data-flick] {
@@ -1063,19 +1082,245 @@ summary:focus-visible {
   outline: none;
 }
 
-details.faq-item summary {
-  cursor: pointer;
-  list-style: none;
+/* ————— the accordion, smooth —————
+   Height animates via grid-rows (no measurement); the + rotates into ×.
+   The answer text is always in the DOM — collapsed, never removed. */
+.faq-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--dur-3) var(--ease-in-out-soft);
 }
 
-details.faq-item summary::-webkit-details-marker {
+.faq-body.is-open {
+  grid-template-rows: 1fr;
+}
+
+.faq-body-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.faq-indicator {
+  display: inline-block;
+  transition: transform var(--dur-3) var(--ease-out-expo);
+}
+
+.faq-indicator.is-open {
+  transform: rotate(45deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .faq-body,
+  .faq-indicator {
+    transition: none;
+  }
+}
+
+/* ————— the passage rail —————
+   The page's own chart: station dots down the right edge, lighting as each
+   band crosses the viewport. Wide screens only — it must never crowd copy. */
+.passage-rail {
+  position: fixed;
+  right: 1.1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 30;
   display: none;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
-details.faq-item summary .indicator::before {
-  content: "+";
+@media (min-width: 1280px) {
+  .passage-rail {
+    display: flex;
+  }
 }
 
-details.faq-item[open] summary .indicator::before {
-  content: "−";
+.rail-stop {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.rail-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 1px solid var(--tint-6);
+  background: transparent;
+  transition:
+    background var(--dur-3) var(--ease-out-expo),
+    border-color var(--dur-3) var(--ease-out-expo),
+    box-shadow var(--dur-3) var(--ease-out-expo);
+}
+
+.rail-label {
+  font-size: 0.5625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  opacity: 0;
+  transform: translateX(4px);
+  transition:
+    opacity var(--dur-2) var(--ease-out-expo),
+    transform var(--dur-2) var(--ease-out-expo);
+}
+
+.rail-stop:hover .rail-label,
+.rail-stop:focus-visible .rail-label,
+.rail-stop.is-active .rail-label {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.rail-stop.is-active .rail-dot {
+  background: var(--signal);
+  border-color: var(--signal);
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.7);
+}
+
+.rail-stop.is-active .rail-label {
+  color: var(--signal);
+}
+
+/* ————— the process rail ————— */
+.process-rail {
+  display: grid;
+  gap: 2rem;
+  counter-reset: step;
+}
+
+@media (min-width: 768px) {
+  .process-rail {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1.25rem;
+  }
+}
+
+.process-rail li {
+  position: relative;
+  padding-top: 0.25rem;
+}
+
+.process-node {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: 1px solid rgba(34, 211, 238, 0.5);
+  background: var(--bg);
+  color: var(--signal);
+  font-size: 0.75rem;
+  position: relative;
+  z-index: 1;
+}
+
+/* the connector line draws itself as the rail reveals */
+.process-rail li::before {
+  content: "";
+  position: absolute;
+  background: var(--hairline);
+}
+
+@media (min-width: 768px) {
+  .process-rail li:not(:last-child)::before {
+    top: 1.2rem;
+    left: 2.6rem;
+    right: -0.65rem;
+    height: 1px;
+    transform-origin: left center;
+  }
+}
+
+@media (max-width: 767px) {
+  .process-rail li:not(:last-child)::before {
+    top: 2.5rem;
+    left: 0.95rem;
+    bottom: -1.75rem;
+    width: 1px;
+    transform-origin: top center;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .process-rail li::before {
+    transform: scaleX(0);
+  }
+
+  @media (max-width: 767px) {
+    .process-rail li::before {
+      transform: scaleY(0);
+    }
+  }
+
+  .process-rail li.is-revealed::before {
+    animation: line-draw-x var(--dur-5) var(--ease-out-quart) 0.2s both;
+  }
+
+  @media (max-width: 767px) {
+    .process-rail li.is-revealed::before {
+      animation-name: line-draw-y;
+    }
+  }
+}
+
+@keyframes line-draw-x {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes line-draw-y {
+  to {
+    transform: scaleY(1);
+  }
+}
+
+/* ————— mini-passage stations pop in sequence ————— */
+@media (prefers-reduced-motion: no-preference) {
+  [data-reveal] .mp-s {
+    opacity: 0;
+  }
+
+  [data-reveal].is-revealed .mp-s {
+    animation: mp-pop var(--dur-3) var(--ease-out-expo) calc(var(--i, 0) * 140ms + 200ms) both;
+  }
+}
+
+@keyframes mp-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+    transform-origin: center;
+    transform-box: fill-box;
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+    transform-origin: center;
+    transform-box: fill-box;
+  }
+}
+
+/* ————— terminal lines ease in rather than popping ————— */
+@media (prefers-reduced-motion: no-preference) {
+  .terminal > div {
+    animation: term-in 180ms var(--ease-out-quart) both;
+  }
+}
+
+@keyframes term-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }

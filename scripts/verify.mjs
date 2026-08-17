@@ -173,7 +173,7 @@ const browser = await chromium
   for (const dest of ["/", "/packages", "/watch", "/work", "/capabilities", "/contact"]) {
     if (!reached.has(dest)) fail(`keyboard: nav destination ${dest} not reachable by Tab`);
   }
-  if (!reached.has("cta:hero") && !reached.has("cta:home-contract")) {
+  if (!reached.has("cta:hero") && !reached.has("cta:home-contract") && !reached.has("cta:nav")) {
     fail("keyboard: contact CTA not reachable by Tab");
   }
   ok("keyboard: primary nav + contact CTA all reachable by Tab");

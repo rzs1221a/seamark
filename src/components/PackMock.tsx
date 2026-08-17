@@ -30,8 +30,13 @@ export function PackMock() {
         </div>
       </div>
       <ul className="space-y-4">
-        {CALLOUTS.map((c) => (
-          <li key={c.label} className="flex gap-3">
+        {CALLOUTS.map((c, i) => (
+          <li
+            key={c.label}
+            className="flex gap-3"
+            data-reveal
+            data-scrub={(["a", "b", "c"] as const)[i % 3]}
+          >
             <span
               aria-hidden="true"
               className="mt-1.5 h-px w-6 shrink-0 bg-(--signal) opacity-70"

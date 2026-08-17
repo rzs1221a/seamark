@@ -1,11 +1,15 @@
+import { useRef } from "react";
 import { liveWork, provenanceLine } from "../lib/work";
 import { BeaconDot } from "../components/ProofStrip";
+import { useReveals } from "../lib/useReveal";
 
 // The least theatrical page on the site — deliberately. The claims section is
 // where the showmanship stops. Each entry states its provenance.
 export function Work() {
+  const rootRef = useRef<HTMLDivElement>(null);
+  useReveals(rootRef);
   return (
-    <div className="mx-auto max-w-4xl px-4 py-14 sm:px-6">
+    <div ref={rootRef} className="mx-auto max-w-4xl px-4 py-14 sm:px-6">
       <div className="mono-label">Work</div>
       <h1 className="mt-3 text-3xl sm:text-4xl">Real sites, on this coast.</h1>
       <p className="mt-4 max-w-2xl leading-relaxed text-(--muted)">
@@ -16,7 +20,12 @@ export function Work() {
 
       <div className="mt-10 space-y-6">
         {liveWork.map((item) => (
-          <article key={item.slug} id={item.slug} className="panel-plain scroll-mt-24 overflow-hidden">
+          <article
+            key={item.slug}
+            id={item.slug}
+            data-reveal
+            className="panel-plain scroll-mt-24 overflow-hidden"
+          >
             {item.desktop && (
               <div className="relative aspect-[21/9] overflow-hidden border-b border-(--hairline-faint)">
                 <img

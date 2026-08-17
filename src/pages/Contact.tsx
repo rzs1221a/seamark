@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { brand } from "../lib/brand";
+import { noContractLine } from "../lib/watch";
 import { useReveals } from "../lib/useReveal";
 
 export function Contact() {
@@ -67,6 +68,9 @@ export function Contact() {
           <button type="submit" className="btn-cta" data-cta="contact-submit" data-magnetic>
             Request the call
           </button>
+          <p className="mono pt-2 text-[0.6875rem] leading-relaxed text-(--muted)">
+            {noContractLine}
+          </p>
         </form>
 
         <div className="space-y-6" data-reveal>

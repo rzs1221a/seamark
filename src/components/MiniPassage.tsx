@@ -32,7 +32,11 @@ export function MiniPassage({ lit }: { lit: StationId[] }) {
       {STATIONS.map((s, i) => {
         const on = lit.includes(s.id);
         return (
-          <g key={s.id}>
+          <g
+            key={s.id}
+            className={on ? "mp-s" : undefined}
+            style={on ? ({ "--i": i } as React.CSSProperties) : undefined}
+          >
             {on && i > 0 && lit.includes(STATIONS[i - 1].id) && (
               <line
                 x1={xs[i - 1]}

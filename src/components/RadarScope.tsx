@@ -3,7 +3,7 @@ import { radarBlips } from "../lib/watch";
 // The /watch fold: a radar scope whose blips are the service log. The sweep
 // passes; the blips light; they fade; the sweep returns. Reduced motion gets
 // the designed static state — all blips lit, sweep fixed (see styles.css).
-export function RadarScope() {
+export function RadarScope({ compact = false }: { compact?: boolean }) {
   const angles = [40, 130, 215, 300]; // where each blip sits, degrees from 12 o'clock
   const cx = 180;
   const cy = 180;
@@ -12,7 +12,7 @@ export function RadarScope() {
   return (
     <svg
       viewBox="-115 0 590 360"
-      className="mx-auto w-full max-w-140"
+      className={`mx-auto w-full ${compact ? "max-w-110" : "max-w-140"}`}
       role="img"
       aria-label={`Radar scope. Each pass of the sweep lights what the Watch catches: ${radarBlips.join("; ")}.`}
     >
@@ -30,8 +30,11 @@ export function RadarScope() {
       <line x1={cx} y1="12" x2={cx} y2="348" stroke="rgba(34,211,238,0.08)" strokeWidth="1" />
       <line x1="12" y1={cy} x2="348" y2={cy} stroke="rgba(34,211,238,0.08)" strokeWidth="1" />
 
-      {/* sweep: a trailing wedge, rotating about the scope center */}
-      <g className="radar-sweep">
+      {/* sweep: a trailing wedge, rotating about the scope center. The origin
+          is in user coordinates (px lengths on SVG elements resolve in the
+          user coordinate system), pinning the axis exactly to (cx, cy) — a
+          fill-box origin would wobble around the wedge's own bounds. */}
+      <g className="radar-sweep" style={{ transformOrigin: `${cx}px ${cy}px` }}>
         <path
           d={`M ${cx} ${cy} L ${cx} 12 A 168 168 0 0 0 ${cx - 168 * Math.sin((38 * Math.PI) / 180)} ${cy - 168 * Math.cos((38 * Math.PI) / 180)} Z`}
           fill="url(#sweepFade)"
@@ -40,7 +43,8 @@ export function RadarScope() {
       </g>
       <defs>
         <linearGradient id="sweepFade" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stopColor="rgba(34,211,238,0.22)" />
+          <stop offset="0" stopColor="rgba(34,211,238,0.24)" />
+          <stop offset="0.45" stopColor="rgba(34,211,238,0.08)" />
           <stop offset="1" stopColor="rgba(34,211,238,0)" />
         </linearGradient>
       </defs>

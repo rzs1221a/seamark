@@ -37,6 +37,7 @@ export function Packages() {
             </div>
             <div className="mono-label mt-1">{tier.system}</div>
             <p className="mt-3 text-sm text-(--muted) italic">{tier.audience}</p>
+            <p className="mt-3 text-sm leading-relaxed">{tier.pitch}</p>
 
             {/* the diagram is the tier comparison */}
             <div className="mt-5 max-w-72">

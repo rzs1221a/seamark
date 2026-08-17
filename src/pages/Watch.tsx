@@ -67,8 +67,9 @@ export function Watch() {
               <Price value={plan.price} per={plan.per} />
             </div>
             <div className="mono-label mt-1">{plan.tagline}</div>
+            <p className="mt-4 text-sm leading-relaxed">{plan.pitch}</p>
             {plan.blurb && (
-              <p className="mt-4 text-sm leading-relaxed text-(--muted)">{plan.blurb}</p>
+              <p className="mt-3 text-sm leading-relaxed text-(--muted)">{plan.blurb}</p>
             )}
             <ul className="mt-5 space-y-2.5 text-sm leading-relaxed">
               {plan.includes.map((item) => (
