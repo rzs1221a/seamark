@@ -28,7 +28,7 @@ export function Home() {
       <section
         aria-label="What the old route costs"
         data-frame="home-costs"
-        className="mx-auto max-w-6xl px-4 py-16 sm:px-6"
+        className="mx-auto max-w-6xl px-4 py-24 sm:px-6"
       >
         <h2 className="text-2xl sm:text-3xl" data-reveal>
           What the old route costs
@@ -45,7 +45,7 @@ export function Home() {
       <section
         aria-label="The ownership contract"
         data-frame="home-contract"
-        className="mx-auto max-w-4xl px-4 py-16 sm:px-6"
+        className="mx-auto max-w-4xl px-4 py-24 sm:px-6"
       >
         <div data-reveal>
           <Cartouche label={ownershipContract.label} text={ownershipContract.text} />

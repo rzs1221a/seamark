@@ -193,10 +193,10 @@ body {
 .map-veil[data-route="/"] {
   background: linear-gradient(
     to bottom,
-    rgba(4, 7, 10, 0.18),
-    rgba(4, 7, 10, 0.1) 30%,
-    rgba(4, 7, 10, 0.55) 62%,
-    rgba(4, 7, 10, 0.85) 85%
+    rgba(4, 7, 10, 0.14),
+    rgba(4, 7, 10, 0.08) 30%,
+    rgba(4, 7, 10, 0.48) 62%,
+    rgba(4, 7, 10, 0.84) 85%
   );
 }
 

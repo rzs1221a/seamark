@@ -48,7 +48,7 @@ function WorkCard({ item }: { item: WorkItem }) {
 export function ProofStrip() {
   if (liveWork.length === 0) return null;
   return (
-    <section aria-label="Shipped work" className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+    <section aria-label="Shipped work" className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
       <p className="text-lg text-(--ink)" data-reveal>
         {proofStripLine}
       </p>
