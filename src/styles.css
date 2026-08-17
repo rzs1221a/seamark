@@ -1,0 +1,432 @@
+@import "tailwindcss";
+
+@theme {
+  --color-signal: #22d3ee;
+  --color-lead: #f5b445;
+  --color-bg: #04070a;
+  --color-land: #0a1116;
+  --color-panel: #0c1216;
+  --color-ink: #e8edf0;
+  --color-muted: #8ea0aa;
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    sans-serif;
+  --font-mono:
+    ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+:root {
+  --signal: #22d3ee;
+  --lead: #f5b445;
+  --bg: #04070a;
+  --land: #0a1116;
+  --panel: #0c1216;
+  --ink: #e8edf0;
+  --muted: #8ea0aa;
+  --hairline: rgba(34, 211, 238, 0.14);
+  --hairline-faint: rgba(142, 160, 170, 0.14);
+}
+
+html {
+  background: var(--bg);
+  color-scheme: dark;
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: rgba(34, 211, 238, 0.28);
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+/* ————— instrument readings ————— */
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+.mono-label {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ————— panels & chrome ————— */
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--hairline);
+  border-radius: 0.75rem;
+}
+
+.panel-plain {
+  background: var(--panel);
+  border: 1px solid var(--hairline-faint);
+  border-radius: 0.75rem;
+}
+
+.hairline-t {
+  border-top: 1px solid var(--hairline-faint);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  color: var(--signal);
+  background: rgba(34, 211, 238, 0.07);
+  white-space: nowrap;
+}
+
+.chip-lead {
+  border-color: rgba(245, 180, 69, 0.35);
+  color: var(--lead);
+  background: rgba(245, 180, 69, 0.08);
+}
+
+.btn-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--signal);
+  color: #04252b;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  border-radius: 0.625rem;
+  padding: 0.8rem 1.4rem;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+  box-shadow: 0 0 24px rgba(34, 211, 238, 0.25);
+}
+
+.btn-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 36px rgba(34, 211, 238, 0.4);
+}
+
+.btn-quiet {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--hairline);
+  color: var(--signal);
+  border-radius: 0.625rem;
+  padding: 0.8rem 1.4rem;
+  transition: background 0.15s ease;
+}
+
+.btn-quiet:hover {
+  background: rgba(34, 211, 238, 0.08);
+}
+
+/* ————— the cartouche (chart title block) ————— */
+.cartouche {
+  position: relative;
+  border: 1px solid rgba(34, 211, 238, 0.35);
+  outline: 1px solid rgba(34, 211, 238, 0.12);
+  outline-offset: 5px;
+  background:
+    linear-gradient(rgba(34, 211, 238, 0.03), rgba(34, 211, 238, 0.01)),
+    var(--panel);
+  border-radius: 2px;
+}
+
+.cartouche::before,
+.cartouche::after {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-color: rgba(34, 211, 238, 0.6);
+  border-style: solid;
+}
+
+.cartouche::before {
+  top: -1px;
+  left: -1px;
+  border-width: 1px 0 0 1px;
+}
+
+.cartouche::after {
+  bottom: -1px;
+  right: -1px;
+  border-width: 0 1px 1px 0;
+}
+
+/* ————— station chips (FOUND / LANDED / CAPTURED / BOUGHT) ————— */
+.station-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  padding: 0.25rem 0.6rem;
+  border-radius: 3px;
+  border: 1px dashed rgba(142, 160, 170, 0.4);
+  color: rgba(142, 160, 170, 0.7);
+  background: rgba(4, 7, 10, 0.72);
+  transition:
+    color 0.4s ease,
+    border-color 0.4s ease,
+    box-shadow 0.4s ease;
+}
+
+.station-chip .dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.station-chip.lit {
+  border-style: solid;
+  border-color: rgba(34, 211, 238, 0.7);
+  color: var(--signal);
+  box-shadow: 0 0 14px rgba(34, 211, 238, 0.25);
+}
+
+/* ————— the Passage hero ————— */
+.passage-hero {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(1200px 500px at 75% 0%, rgba(34, 211, 238, 0.06), transparent 60%),
+    var(--bg);
+}
+
+.passage-desktop {
+  display: none;
+}
+
+.passage-mobile {
+  display: block;
+}
+
+@media (min-width: 821px) {
+  .passage-desktop {
+    display: block;
+  }
+
+  .passage-mobile {
+    display: none;
+  }
+}
+
+.scene-card {
+  background: rgba(12, 18, 22, 0.92);
+  border: 1px solid var(--hairline);
+  border-radius: 0.625rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+.scene-card .tag {
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  letter-spacing: 0.16em;
+  color: var(--signal);
+}
+
+.scene-card .tag-lead {
+  color: var(--lead);
+}
+
+.search-caret {
+  display: inline-block;
+  width: 1px;
+  height: 0.9em;
+  background: var(--ink);
+  vertical-align: text-bottom;
+  animation: caret-blink 1s steps(1) infinite;
+}
+
+@keyframes caret-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.form-bar {
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(142, 160, 170, 0.18);
+  overflow: hidden;
+}
+
+.form-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--lead);
+  border-radius: 3px;
+  transition: width 0.3s ease-out;
+}
+
+.terminal {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.6875rem;
+  line-height: 1.7;
+  color: var(--muted);
+}
+
+.terminal .t-key {
+  color: rgba(142, 160, 170, 0.6);
+}
+
+.terminal .t-val {
+  color: var(--ink);
+}
+
+.terminal .t-row {
+  color: var(--lead);
+  background: rgba(245, 180, 69, 0.09);
+  border-left: 2px solid var(--lead);
+  padding-left: 0.5rem;
+  margin-left: -0.5rem;
+}
+
+/* ————— radar scope (/watch) ————— */
+.radar-sweep {
+  animation: radar-rotate 8s linear infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+@keyframes radar-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.radar-blip {
+  opacity: 0.12;
+  animation: radar-blip 8s linear infinite;
+}
+
+@keyframes radar-blip {
+  0%,
+  4% {
+    opacity: 0.12;
+  }
+  6% {
+    opacity: 1;
+  }
+  40% {
+    opacity: 0.85;
+  }
+  75% {
+    opacity: 0.25;
+  }
+  100% {
+    opacity: 0.12;
+  }
+}
+
+/* ————— reduced motion: designed static states, not kill switches ————— */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .radar-sweep {
+    animation: none;
+  }
+
+  .radar-blip {
+    animation: none;
+    opacity: 1;
+  }
+
+  .search-caret {
+    animation: none;
+  }
+
+  .btn-cta,
+  .btn-quiet,
+  .station-chip,
+  .form-bar > span {
+    transition: none;
+  }
+}
+
+/* ————— footer compass ————— */
+.compass-watermark {
+  position: absolute;
+  right: -3rem;
+  bottom: -3rem;
+  width: 20rem;
+  height: 20rem;
+  opacity: 0.05;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ————— accessibility ————— */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.field {
+  width: 100%;
+  background: rgba(4, 7, 10, 0.7);
+  border: 1px solid var(--hairline-faint);
+  border-radius: 0.5rem;
+  padding: 0.65rem 0.85rem;
+  color: var(--ink);
+  font-size: 0.9375rem;
+}
+
+.field:focus {
+  border-color: rgba(34, 211, 238, 0.5);
+  outline: none;
+}
+
+details.faq-item summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+details.faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+details.faq-item summary .indicator::before {
+  content: "+";
+}
+
+details.faq-item[open] summary .indicator::before {
+  content: "−";
+}
