@@ -4,22 +4,38 @@ The storefront for **Seamark Studio** — lead-generation systems for real estat
 agents, sold as something the agent owns outright. The site demonstrates the
 route it sells: FOUND (a Google Business Profile the agent owns) → LANDED (a
 fast site on the agent's own domain) → CAPTURED (every lead wired into
-BoldTrail).
+BoldTrail) — and it demonstrates it **on the real coast**: one persistent
+MapLibre camera sits behind every page, and the hero's Passage is drawn in
+lng/lat along the actual approach through the St. Marys entrance to the
+Fernandina marina, projected through the live camera every frame.
 
-Two rules govern everything here:
+Three rules govern everything here:
 
-1. **The chart, not the brochure.** The visual language is a working nautical
-   chart; every chart element is information, never decoration.
-2. **The honesty contract.** Every external number on the site comes from
-   `src/lib/facts.ts`, with its source and as-of date. The build enforces this
-   (see *Quality gates*).
+1. **The chart, not the brochure.** The visual language is a living nautical
+   chart over real imagery; every animated element is information — the beam
+   is how being found works, the beacons blink their true light
+   characteristics, the radar blips are the service log.
+2. **The honesty contract.** Every external number comes from
+   `src/lib/facts.ts` with source and as-of date; every portfolio claim states
+   its provenance; the build fails — not warns — on violations.
+3. **Navigation is travel.** Route changes fly the camera and bloom the
+   arriving page in one continuous move. Nothing cuts; everything settles.
 
 ## Stack
 
-Vite + React 19 + TypeScript + Tailwind CSS v4. No component library, no
-animation library — the Passage hero is hand-rolled SVG + `requestAnimationFrame`.
-Runtime dependencies are React and react-router only. Hosting target is Netlify
-(the contact form uses Netlify Forms).
+Vite + React 19 + TypeScript + Tailwind CSS v4 + **MapLibre GL** + SunCalc.
+Geist Variable / Geist Mono, self-hosted. Netlify hosting, Netlify Forms.
+
+> **On the dependency rule.** The original build spec mandated zero runtime
+> dependencies beyond React and the router, with a 200KB total-JS budget. The
+> persistent camera was a deliberate, explicitly approved break of that rule.
+> The budgets moved with it, holding the line where it matters: **entry JS
+> (everything a route needs before the map ignites) stays under the original
+> 200KB gzipped**, the map engine must remain a separate lazily-loaded chunk,
+> and the total stays under 360KB gzipped. Phones and data-saver connections
+> never load the engine at all — they keep the dark plate and the vertical
+> Passage diagram. If WebGL or the tile servers fail, the plate stays and the
+> site is complete without it.
 
 ```
 npm install
@@ -28,8 +44,8 @@ npm run build    # vite build + prerender (static HTML per route, sitemap, robot
 npm run verify   # build + Playwright quality gates (screenshots in verify-output/)
 ```
 
-Node 20+. `npm run verify` uses Playwright's Chromium; if no downloaded browser
-is present it falls back to `/opt/pw-browsers/chromium`.
+Node 20+. Verify uses Playwright's Chromium, falling back to
+`/opt/pw-browsers/chromium` where no downloaded browser exists.
 
 ## Where things live
 
@@ -38,57 +54,68 @@ modules and contain no prose of their own:
 
 | File | Owns |
 |---|---|
-| `brand.ts` | name, tagline, contact, origin, `SHOW_PRICING` flag, disclaimer, ownership contract |
+| `brand.ts` | name, tagline, contact, origin, `SHOW_PRICING`, disclaimer, ownership contract |
 | `offer.ts` | the four build tiers + comparison table |
 | `watch.ts` | the three monthly plans + the Channel + radar blips |
-| `facts.ts` | every external number, each `{ value, label, source, sourceUrl, asOf }` |
-| `work.ts` | shipped projects — `TODO(zander)` entries are excluded from production until filled in |
+| `facts.ts` | every external number: `{ value, label, source, sourceUrl, asOf }` |
+| `work.ts` | the portfolio — see *Provenance* below |
 | `faq.ts`, `process.ts`, `pillars.ts` | questions, process steps, capability entries |
-| `routes.ts` | the route table — prerender, sitemap, and meta all read this one list |
+| `routes.ts` | the route table — prerender, sitemap, and meta read this one list |
+| `cameraFrames.ts` | authored camera frames per route + homepage beat; the flight engine seam |
+| `mapStyle.ts` | the dark-graded Esri imagery + OSM extrusion style (key-free) |
+| `sky.ts` | real solar geometry → `html[data-sky]` hue cast |
 
-Flipping `SHOW_PRICING` to `false` renders every price as "Let's talk"
-(everything goes through `src/components/Price.tsx`) and the prerender asserts
-no price string appears in output.
+### Provenance (work.ts)
 
-## Prerendering
+Every portfolio entry carries `verified: "session" | "prior-portfolio"`,
+rendered on the page. "session" means the claims were verified directly
+against the project's attached source repository; "prior-portfolio" means they
+are carried from the studio's previous storefront, whose portfolio data was
+itself audited against the source repos. The prerenderer fails the build if an
+entry claims session verification for a repo that was never attached, if a
+screenshot is referenced but missing, or if a beacon coordinate or light
+characteristic is absent. Deliberately no conversion statistics anywhere.
 
-`scripts/prerender.mjs` runs through `tsx` after `vite build`, imports the same
-TS modules the app renders from, and stamps out one static HTML file per route
-with real content in the body, per-route title/description/canonical/OG/JSON-LD,
-plus `sitemap.xml` and `robots.txt` from the same route table. The client
-hydrates the prerendered markup.
+## The camera
 
-## Quality gates — the build fails, it does not warn
-
-`prerender.mjs` throws on: empty/duplicate titles or descriptions, an
-implausibly empty body, any price rendered while `SHOW_PRICING` is false,
-`"% more leads"` / `"+40% leads"` anywhere, or `"guarantee"` outside the FAQ
-route. The facts rule is enforced by construction: stat components take their
-values *from* `facts.ts`; no external claim is written as a literal in JSX.
-
-`scripts/verify.mjs` (Playwright against the built output) asserts:
-
-- **Reduced motion** at 1440×900: every route fully visible, and the hero shows
-  the *completed* passage — a designed static state, not a kill switch.
-- **Keyboard**: every primary-nav destination and the contact CTA reachable by Tab.
-- **Viewports** 390/768/1024/1440: no horizontal overflow, hero legible,
-  screenshots saved to `verify-output/`.
-- **Budgets**: total JS < 200KB gzipped, no image over 200KB, CLS < 0.05 on `/`
-  (LCP is reported; the Passage renders after first paint and the hero copy is
-  in the prerendered HTML, which is what protects LCP).
-- **Links & sitemap**: every internal link resolves; the sitemap contains
-  exactly the prerendered routes.
+`LiveMap` mounts one map for the life of the session (wide viewports only).
+The engine is dynamically imported after first paint so the prerendered text —
+the LCP — never waits on it; when tiles arrive, the coast eases up out of the
+dark. First load opens far out over the Atlantic and descends into the route's
+frame over seven seconds with a long settling tail; an idle orbit (0.4°/s)
+keeps the coast breathing between flights. Flights use quartic ease-out and a
+queue: only the newest target is ever flown, and a flight already in the air
+shortens the next. Under reduced motion the camera **jumps** — the position IS
+the destination, so it still arrives, without the flight.
 
 ## Motion doctrine
 
-One performer per viewport. Every animation must show the visitor something
-(the beam sweep is *how being found works*; the radar blips are *the service
-log*). `prefers-reduced-motion` always gets the completed diagram, everything
-lit — verified per route.
+- One performer per viewport; every animation completes "this movement shows
+  the visitor that ___".
+- Reveals are enter-once (a page that re-animates on scroll-up is a carousel,
+  not a film); where `animation-timeline: view()` exists they become
+  scroll-driven scrubs on staggered windows.
+- Reduced motion is structural: pre-reveal offsets exist only inside
+  `prefers-reduced-motion: no-preference`, every animated scene has a designed
+  completed state, and the beacon keyframes start and end lit so a frozen
+  light never reads as dead.
 
-## Open TODOs
+Deliberately not adopted from the reference builds: deck.gl photorealistic
+tiles (weight), light/dark act theming (the chart is dark; the map is the
+light), ambient gradient drift and cursor effects (decoration, not
+information), startup gates.
 
-`work.ts` ships with five `TODO(zander)` placeholder entries (The Aerial,
-Heymann Williams Coastal, Sold on Amelia Island, Ron Heymann, this storefront).
-They render an "awaiting real screenshots and verified claims" state in dev and
-are excluded from production builds until filled in with verifiable claims.
+## Quality gates — the build fails, it does not warn
+
+`prerender.mjs` throws on: empty/duplicate route meta, an implausibly empty
+body, prices rendered while `SHOW_PRICING` is false, forbidden claim strings
+("% more leads", "+40% leads", "guarantee" outside the FAQ), and every
+portfolio assertion above.
+
+`verify.mjs` (Playwright against the built output) asserts: reduced-motion
+visibility with the completed Passage on every route; keyboard reachability of
+nav + CTA; no horizontal overflow at 390/768/1024/1440; every internal link
+resolving; sitemap exactly matching prerendered routes; **entry JS < 200KB gz,
+total < 360KB gz, map chunk lazy, images ≤ 200KB, CLS < 0.05**; and — when the
+engine mounts — camera arrival at the home frame, eased under motion,
+immediate under reduced motion.

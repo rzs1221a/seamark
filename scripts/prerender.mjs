@@ -15,6 +15,7 @@ import { StaticRouter } from "react-router-dom";
 import App from "../src/App.tsx";
 import { routeTable } from "../src/lib/routes.ts";
 import { brand, SHOW_PRICING, serviceTypes } from "../src/lib/brand.ts";
+import { workItems } from "../src/lib/work.ts";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const dist = resolve(root, "dist");
@@ -37,6 +38,40 @@ for (const route of routeTable) {
   }
   titles.add(route.title);
   descriptions.add(route.description);
+}
+
+// ——— the portfolio's honesty contract: fails the build ———
+// "session" provenance may only be claimed for repositories that were actually
+// attached and read in a working session. Everything else must say where its
+// claims came from.
+const SESSION_VERIFIED = new Set(["heymann-williams-coastal", "the-living-chart", "seamark-studio"]);
+{
+  const slugs = new Set();
+  for (const item of workItems) {
+    if (slugs.has(item.slug)) throw new Error(`work: duplicate slug ${item.slug}`);
+    slugs.add(item.slug);
+    const [lng, lat] = item.coord;
+    if (!Number.isFinite(lng) || !Number.isFinite(lat) || Math.abs(lat) > 90) {
+      throw new Error(`work: ${item.slug} has a bad beacon coordinate`);
+    }
+    if (!item.light?.characteristic) {
+      throw new Error(`work: ${item.slug} has no light characteristic`);
+    }
+    if (item.verified === "session" && !SESSION_VERIFIED.has(item.slug)) {
+      throw new Error(
+        `work: ${item.slug} claims session verification but its repo was never attached`,
+      );
+    }
+    for (const shot of [item.desktop, item.mobile]) {
+      if (!shot) continue;
+      const onDisk = resolve(root, "public", shot.slice(1));
+      try {
+        readFileSync(onDisk);
+      } catch {
+        throw new Error(`work: ${item.slug} references missing screenshot ${shot}`);
+      }
+    }
+  }
 }
 
 const esc = (s) =>

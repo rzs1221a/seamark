@@ -245,6 +245,74 @@ for (const width of [390, 768, 1024, 1440]) {
   await ctx.close();
 }
 
+// ——— the camera: if the engine mounts, it must arrive ———
+// Tile fetches fail in this offline harness (that's fine — nothing asserts
+// map pixels, and the site is complete on the plate), but if the map instance
+// comes up, the camera must reach the home frame: eased under motion,
+// immediately under reduced motion. The expected frame is parsed from
+// cameraFrames.ts so this check cannot drift from the source.
+{
+  const src = readFileSync(resolve(root, "src/lib/cameraFrames.ts"), "utf8");
+  const m = src.match(
+    /"\/":\s*\{\s*center:\s*\[(-?[\d.]+),\s*(-?[\d.]+)\],\s*zoom:\s*([\d.]+),\s*pitch:\s*([\d.]+)/,
+  );
+  if (!m) fail("camera check: could not parse the home frame from cameraFrames.ts");
+  else {
+    const want = { lng: Number(m[1]), lat: Number(m[2]), zoom: Number(m[3]) };
+    for (const reduced of [false, true]) {
+      const ctx = await browser.newContext({
+        viewport: { width: 1440, height: 900 },
+        reducedMotion: reduced ? "reduce" : "no-preference",
+      });
+      const page = await ctx.newPage();
+      await page.goto(`${origin}/`, { waitUntil: "load" });
+      const deadline = Date.now() + (reduced ? 8000 : 16000);
+      let state = null;
+      while (Date.now() < deadline) {
+        state = await page.evaluate(() => {
+          const map = window.__seamarkMap;
+          if (!map) return null;
+          const c = map.getCenter();
+          return { lng: c.lng, lat: c.lat, zoom: map.getZoom() };
+        });
+        if (
+          state &&
+          Math.abs(state.lng - want.lng) < 0.08 &&
+          Math.abs(state.lat - want.lat) < 0.08 &&
+          Math.abs(state.zoom - want.zoom) < 0.4
+        ) {
+          break;
+        }
+        await page.waitForTimeout(400);
+      }
+      const approach = src.match(
+        /APPROACH:\s*CameraFrame\s*=\s*\{\s*center:\s*\[(-?[\d.]+),\s*(-?[\d.]+)\]/,
+      );
+      const atApproach =
+        state &&
+        approach &&
+        Math.abs(state.lng - Number(approach[1])) < 0.02 &&
+        Math.abs(state.lat - Number(approach[2])) < 0.02;
+      if (state === null || (atApproach && !reduced)) {
+        console.log(
+          `  ○ camera (${reduced ? "reduced" : "motion"}): engine ${state === null ? "did not mount" : "never ignited (no tiles)"} in this harness — plate fallback covers it`,
+        );
+      } else if (
+        Math.abs(state.lng - want.lng) < 0.08 &&
+        Math.abs(state.lat - want.lat) < 0.08 &&
+        Math.abs(state.zoom - want.zoom) < 0.4
+      ) {
+        ok(`camera (${reduced ? "reduced" : "motion"}): arrived at the home frame`);
+      } else {
+        fail(
+          `camera (${reduced ? "reduced" : "motion"}): mounted but never arrived — at ${JSON.stringify(state)}, wanted ~${JSON.stringify(want)}`,
+        );
+      }
+      await ctx.close();
+    }
+  }
+}
+
 await browser.close();
 server.close();
 
