@@ -2,6 +2,12 @@
   command = "npm run build"
   publish = "dist"
 
+[build.environment]
+  NODE_VERSION = "20"
+  # Playwright is a devDependency for the local verify suite only; without
+  # this flag its postinstall downloads ~300MB of browsers on every deploy.
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1"
+
 # Prerendered static HTML exists for every route; this only catches
 # client-side navigations to unknown paths on a hard refresh.
 [[redirects]]
